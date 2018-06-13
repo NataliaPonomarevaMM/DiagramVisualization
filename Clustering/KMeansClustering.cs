@@ -40,7 +40,7 @@ namespace DiagramVisualization.Clustering
                 toContinue = false;
                 CountMetrics();
             }
-            //return clusters;
+
             double [][][] result = new double[k][][];
             for (int i = 0; i < k; i++)
             {
