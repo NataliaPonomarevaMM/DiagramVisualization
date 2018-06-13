@@ -1,0 +1,31 @@
+
+<p *ngIf="!irises"><em>Loading...</em></p>
+
+<div *ngIf="irises">
+    <draw-plot [irises]="irises"></draw-plot>
+
+    <radial [irises]="irises"></radial>
+
+    <!--
+    <table class='table' >
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>SW</th>
+                <th>Pl</th>
+                <th>PW</th>
+                <th>Species</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let iris of irises">
+                <td>{{ iris.sepalLength }}</td>
+                <td>{{ iris.sepalWidth }}</td>
+                <td>{{ iris.petalLength }}</td>
+                <td>{{ iris.petalWidth }}</td>
+                <td>{{ iris.species }}</td>
+            </tr>
+        </tbody>
+    </table> 
+    -->
+</div>

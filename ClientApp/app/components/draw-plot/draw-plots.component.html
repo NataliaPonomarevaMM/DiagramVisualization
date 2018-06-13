@@ -1,0 +1,8 @@
+<p *ngIf="!_irises"><em>Loading...</em></p>
+<div *ngIf="_irises">
+    <div class="row" *ngFor="let i of elementNames">
+        <div class="col-lg-3" *ngFor="let j of elementNames">
+            <plot [irises]="_irises" [xMean]="i" [yMean]="j"></plot>
+        </div>
+    </div>
+</div>
