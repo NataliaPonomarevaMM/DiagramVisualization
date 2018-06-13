@@ -1,7 +1,7 @@
 import { Component, Inject, OnChanges, Input, SimpleChanges } from '@angular/core';
 import * as d3 from 'd3';
 import { range, HierarchyRectangularNode, HierarchyNode } from 'd3';
-import { Iris } from '../iris';
+import { IrisTree } from '../iris';
 
 const sizes = {
     vWidth: 500,
@@ -22,20 +22,8 @@ const config = {
     templateUrl: './radial.component.html'
 })
 export class RadialComponent implements OnChanges{
-    @Input() irises: Iris[] = [];
-    private _irises: Iris[] = [];
-    private nodeData: Test1 = 
-        {"name": "TOPICS", "children": [{
-            "name": "Topic A",
-            "children": [{"name": "Sub A1", "size": 4}, {"name": "Sub A2", "size": 4}]
-        }, {
-            "name": "Topic B",
-            "children": [{"name": "Sub B1", "size": 3}, {"name": "Sub B2", "size": 3}, {
-                "name": "Sub B3", "size": 3}]
-        }, {
-            "name": "Topic C",
-            "children": [{"name": "Sub A1", "size": 4}, {"name": "Sub A2", "size": 4}]
-        }]};
+    @Input() irises: IrisTree;
+    private _irises: IrisTree;
     
     ngOnChanges(changes: SimpleChanges) {
         for (let propName in changes) {
@@ -46,8 +34,7 @@ export class RadialComponent implements OnChanges{
                     break;
             }
           }
-        if (this._irises.length != 0)
-          this.draw();
+        this.draw();
     }
 
     draw()
@@ -62,7 +49,7 @@ export class RadialComponent implements OnChanges{
             .style("opacity", 0);
 
         // Find data root
-        const root = d3.hierarchy<Test1>(this.nodeData, function(d: Test1) { return d.children ? d.children : null; })
+        const root = d3.hierarchy<IrisTree>(this._irises, function(d: IrisTree) { return d.children ? d.children : null; })
             .sum(function (d) { return 1; });
         const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants(); 
 
@@ -78,7 +65,7 @@ export class RadialComponent implements OnChanges{
                 tooltip.transition()
                     .duration(500)
                     .style("opacity", .9);
-                tooltip.html((d.data as Test1).name)
+                tooltip.html((d.data as IrisTree).data.species)
                     .style("left", d3.event.pageX + "px")
                     .style("top", d3.event.pageY + "px");
             })
@@ -88,10 +75,4 @@ export class RadialComponent implements OnChanges{
                     .style("opacity", 0);
             });
     }
-}
-
-interface Test1 {
-    name: string;
-    size?: number;
-    children?: Test1[];
 }

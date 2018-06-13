@@ -5,3 +5,8 @@ export interface Iris {
     petalWidth: number;
     species: string;
 }
+
+export interface IrisTree {
+    data: Iris;
+    children: IrisTree[];
+}
