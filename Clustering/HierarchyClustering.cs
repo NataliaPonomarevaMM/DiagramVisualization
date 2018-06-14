@@ -3,34 +3,6 @@ using System.Numerics;
 
 namespace DiagramVisualization.Clustering
 {
-    public abstract class Hierarchy
-    {
-        public IEnumerable<IEnumerable<double>> data;
-        public IEnumerable<Hierarchy> children;
-    }
-
-    public class HierarchyTree : Hierarchy
-    {
-        public List<Vector<double>> data;
-        public HierarchyTree[] children;
-
-        public HierarchyTree(List<Vector<double>> data)
-        {
-            this.data = data;
-            children = new HierarchyTree[0];
-        }
-        public HierarchyTree(HierarchyTree[] children)
-        {
-            this.data = null;
-            this.children = children;
-        }
-        public HierarchyTree(List<Vector<double>> data, HierarchyTree[] children)
-        {
-            this.data = data;
-            this.children = children;
-        }
-    }
-
     public class HierarchyClustering
     {
         private List<HierarchyTree> items;

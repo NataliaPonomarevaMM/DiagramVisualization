@@ -13,7 +13,9 @@ export class DrawPlotsComponent implements OnChanges {
     public elementNames = ["sepalLength", "sepalWidth", "petalLength", "petalWidth"];
 
     public ngOnChanges(changes: SimpleChanges) {
-        const data: SimpleChange = changes.irises;
-        this.irises = data.currentValue;
+        const data: SimpleChange = changes.Irises;
+        if (data !== undefined) {
+            this.irises = data.currentValue;
+        }
     }
 }

@@ -18,19 +18,20 @@ export class DrawPlotComponent implements OnChanges{
     private yMean: string = "";
 
     public ngOnChanges(changes: SimpleChanges) {
-        for (const propName of changes) {
-            switch (propName) {
-                case "irises":
-                    this.irises = propName.currentValue;
-                    break;
-                case "xMean":
-                    this.xMean = propName.currentValue;
-                    break;
-                case "yMean":
-                    this.yMean = propName.currentValue;
-                    break;
-            }
-          }
+        let data: SimpleChange = changes.Irises;
+        if (data !== undefined) {
+            this.irises = data.currentValue;
+        }
+        data = changes.XMean;
+        if (data !== undefined) {
+            this.xMean = data.currentValue;
+        }
+        data = changes.YMean;
+        if (data !== undefined) {
+            this.yMean = data.currentValue;
+        }
+
+        console.log(this.irises);
         if (this.irises.length !== 0) {
             this.draw();
         }

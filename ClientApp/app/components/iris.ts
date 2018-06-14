@@ -8,5 +8,6 @@ export interface IIris {
 
 export interface IHierarchy {
     data: number[];
+    species: string;
     children: IHierarchy[];
 }

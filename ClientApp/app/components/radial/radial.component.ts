@@ -27,7 +27,7 @@ export class RadialComponent implements OnChanges {
     private irises: IHierarchy;
 
     public ngOnChanges(changes: SimpleChanges) {
-        const data: SimpleChange = changes.irises;
+        const data: SimpleChange = changes.Irises;
         this.irises = data.currentValue;
         this.draw();
     }
@@ -57,7 +57,7 @@ export class RadialComponent implements OnChanges {
                 tooltip.transition()
                     .duration(500)
                     .style("opacity", .9);
-                tooltip.html((d.data as IHierarchy).data.length.toString()) ///!!!!!
+                tooltip.html((d.data as IHierarchy).species)
                     .style("left", d3.event.pageX + "px")
                     .style("top", d3.event.pageY + "px");
             })
