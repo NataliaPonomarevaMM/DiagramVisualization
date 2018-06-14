@@ -1,14 +1,14 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from "@angular/common";
+import { NgModule } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { HttpModule } from "@angular/http";
+import { RouterModule } from "@angular/router";
 
-import { AppComponent } from './components/app/app.component';
-import { FetchDataComponent } from './components/fetchdata/fetchdata.component';
-import { RadialComponent } from './components/radial/radial.component';
-import { DrawPlotsComponent } from './components/draw-plot/draw-plots.component';
-import { DrawPlotComponent } from './components/draw-plot/plot.component';
+import { AppComponent } from "./components/app/app.component";
+import { DrawPlotsComponent } from "./components/draw-plot/draw-plots.component";
+import { DrawPlotComponent } from "./components/draw-plot/plot.component";
+import { FetchDataComponent } from "./components/fetchdata/fetchdata.component";
+import { RadialComponent } from "./components/radial/radial.component";
 
 @NgModule({
     declarations: [
@@ -16,17 +16,18 @@ import { DrawPlotComponent } from './components/draw-plot/plot.component';
         FetchDataComponent,
         RadialComponent,
         DrawPlotsComponent,
-        DrawPlotComponent
+        DrawPlotComponent,
     ],
     imports: [
         CommonModule,
         HttpModule,
         FormsModule,
         RouterModule.forRoot([
-            { path: 'home', component: FetchDataComponent },
-            { path: '**', redirectTo: 'home' }
-        ])
-    ]
+            { path: "home", component: FetchDataComponent },
+            { path: "**", redirectTo: "home" },
+        ],
+    ),
+    ],
 })
 export class AppModuleShared {
 }

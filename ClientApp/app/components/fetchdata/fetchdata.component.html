@@ -2,9 +2,13 @@
 <p *ngIf="!irises"><em>Loading...</em></p>
 
 <div *ngIf="irises">
-    <draw-plot [irises]="irises"></draw-plot>
 
-    <radial [irises]="irises"></radial>
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+        <radial [irises]="hierarchy"></radial>
+    </div>
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+        <draw-plot [irises]="irises"></draw-plot>
+    </div>
 
     <!--
     <table class='table' >

@@ -1,4 +1,4 @@
-export interface Iris {
+export interface IIris {
     sepalLength: number;
     sepalWidth: number;
     petalLength: number;
@@ -6,7 +6,7 @@ export interface Iris {
     species: string;
 }
 
-export interface IrisTree {
-    data: Iris;
-    children: IrisTree[];
+export interface IHierarchy {
+    data: number[];
+    children: IHierarchy[];
 }
