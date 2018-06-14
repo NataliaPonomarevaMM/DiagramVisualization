@@ -26,13 +26,20 @@ const config = {
 export class RadialComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy;
     private irises: IHierarchy;
-    private message: string = "";
+    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, d3.BaseType, {}>;
 
     constructor(private data: DataService) {
     }
 
     public ngOnInit() {
-        this.data.currentMessage.subscribe((message) => { this.message = message; });
+        this.data.currentPlotMessage.subscribe((message) => this.drawBigDots(message));
+    }
+
+    public drawBigDots(message: string) {
+        const splitted = message.split(" ");
+        this.result.style("fill", (d) => splitted[0] === "on" && (d.data as IHierarchy).species === splitted[1] ?
+            config.color((d.data as IHierarchy).species + d.value + d.depth)
+            : "null");
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -56,7 +63,7 @@ export class RadialComponent implements OnChanges, OnInit {
             .sum((d: IHierarchy) => 1);
         const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants();
 
-        g.selectAll("circle")
+        this.result = g.selectAll("circle")
             .data(desc).enter().append("path")
             .attr("display", (d) => d.depth ? null : "none")
             .attr("id", (d, i) => "circle" + i)
@@ -64,7 +71,7 @@ export class RadialComponent implements OnChanges, OnInit {
             .style("stroke", "#fff")
             .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth))
             .on("mouseover", (d, i) => {
-                this.data.changeMessage("on " + (d.data as IHierarchy).species);
+                this.data.sendRadial("on " + (d.data as IHierarchy).species);
                 // d3.select("#circle" + i)
                 //    .style("stroke", "red")
                 //    .style("fill", "none");
@@ -76,7 +83,7 @@ export class RadialComponent implements OnChanges, OnInit {
                     .style("top", d3.event.pageY + "px");
             })
             .on("mouseout", (d, i) => {
-                this.data.changeMessage("out " + (d.data as IHierarchy).species);
+                this.data.sendRadial("out " + (d.data as IHierarchy).species);
                 // d3.select("#circle" + i)
                 //    .style("stroke", "#fff")
                 //    .style("fill", () => config.color((d.data as IHierarchy).species + d.value + d.depth));

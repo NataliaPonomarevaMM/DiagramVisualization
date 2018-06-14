@@ -56,13 +56,12 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     }
 
     public ngOnInit() {
-        this.data.currentMessage.subscribe((message) => this.drawBigDots(message));
+        this.data.currentRadialMessage.subscribe((message) => this.drawBigDots(message));
     }
 
     public drawBigDots(message: string) {
         const splitted = message.split(" ");
-        splitted[0] === "on" ? this.result.attr("r", (d) => d.species === splitted[1] ? 5 : 2)
-        : this.result.attr("r", 2);
+        this.result.attr("r", (d) => splitted[0] === "on" && d.species === splitted[1] ? 5 : 2);
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -138,6 +137,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         .attr("cy", yMap)
         .style("fill", (d: IIris) => config.color(config.cValue(d)))
         .on("mouseover", (d: IIris) => {
+            this.data.sendPlot("on " + d.species);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", .9);
@@ -147,6 +147,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
                 .style("top", d3.event.pageY + "px");
         })
         .on("mouseout", (d: IIris) => {
+            this.data.sendPlot("out " + d.species);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);
