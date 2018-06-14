@@ -1,7 +1,8 @@
 import { Component, Inject,
-    Input, OnChanges, SimpleChange, SimpleChanges } from "@angular/core";
+    Input, OnChanges, OnInit, SimpleChange, SimpleChanges } from "@angular/core";
 import * as d3 from "d3";
 import { HierarchyNode, HierarchyRectangularNode, range } from "d3";
+import { DataService } from "../data.service";
 import { IHierarchy } from "../iris";
 
 const sizes = {
@@ -22,9 +23,17 @@ const config = {
     selector: "radial",
     templateUrl: "./radial.component.html",
 })
-export class RadialComponent implements OnChanges {
+export class RadialComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy;
     private irises: IHierarchy;
+    private message: string = "";
+
+    constructor(private data: DataService) {
+    }
+
+    public ngOnInit() {
+        this.data.currentMessage.subscribe((message) => { this.message = message; });
+    }
 
     public ngOnChanges(changes: SimpleChanges) {
         const data: SimpleChange = changes.Irises;
@@ -50,20 +59,29 @@ export class RadialComponent implements OnChanges {
         g.selectAll("circle")
             .data(desc).enter().append("path")
             .attr("display", (d) => d.depth ? null : "none")
+            .attr("id", (d, i) => "circle" + i)
             .attr("d", config.arc)
             .style("stroke", "#fff")
-            .style("fill", (d) => config.color(d.depth.toString()))
-            .on("mouseover", (d) => {
+            .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth))
+            .on("mouseover", (d, i) => {
+                this.data.changeMessage("on " + (d.data as IHierarchy).species);
+                // d3.select("#circle" + i)
+                //    .style("stroke", "red")
+                //    .style("fill", "none");
                 tooltip.transition()
-                    .duration(500)
+                    .duration(400)
                     .style("opacity", .9);
                 tooltip.html((d.data as IHierarchy).species)
                     .style("left", d3.event.pageX + "px")
                     .style("top", d3.event.pageY + "px");
             })
-            .on("mouseout", (d) => {
+            .on("mouseout", (d, i) => {
+                this.data.changeMessage("out " + (d.data as IHierarchy).species);
+                // d3.select("#circle" + i)
+                //    .style("stroke", "#fff")
+                //    .style("fill", () => config.color((d.data as IHierarchy).species + d.value + d.depth));
                 tooltip.transition()
-                    .duration(500)
+                    .duration(400)
                     .style("opacity", 0);
             });
     }

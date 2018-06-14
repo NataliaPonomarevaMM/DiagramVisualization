@@ -1,21 +1,69 @@
-import { Component, Inject, Input, OnChanges,
+import { Component, Inject, Input, OnChanges, OnInit,
         SimpleChange, SimpleChanges } from "@angular/core";
 import * as d3 from "d3";
 import { range } from "d3";
+import { DataService } from "../data.service";
 import { IIris} from "../iris";
+
+const margin = {
+    bottom: 20,
+    left: 30,
+    right: 10,
+    top: 5,
+};
+const config = {
+    cValue: (d: IIris) => d.species,
+    color: d3.scaleOrdinal(d3.schemeCategory10),
+    height: 150 - margin.top - margin.bottom,
+    width: 200 - margin.left - margin.right,
+};
+
+const getSvg = (xAxis: any, yAxis: any) => {
+    const svg = d3.select("div").append("svg")
+            .attr("width", config.width + margin.left + margin.right)
+            .attr("height", config.height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    // x-axis
+    svg.append("g")
+    .attr("transform", "translate(0," + config.height + ")")
+    .attr("class", "x axis").call(xAxis).append("text")
+    .attr("class", "label").attr("x", config.width).attr("y", -6)
+    .style("text-anchor", "end").text("X");
+
+    // y-axis
+    svg.append("g")
+    .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
+    .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
+    .style("text-anchor", "end").text("Y");
+    return svg;
+};
 
 @Component({
     selector: "plot",
     templateUrl: "./plot.component.html",
 })
-
-export class DrawPlotComponent implements OnChanges{
+export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IIris[] = [];
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
     private irises: IIris[] = [];
     private xMean: string = "";
     private yMean: string = "";
+    private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>;
+
+    constructor(private data: DataService) {
+    }
+
+    public ngOnInit() {
+        this.data.currentMessage.subscribe((message) => this.drawBigDots(message));
+    }
+
+    public drawBigDots(message: string) {
+        const splitted = message.split(" ");
+        splitted[0] === "on" ? this.result.attr("r", (d) => d.species === splitted[1] ? 5 : 2)
+        : this.result.attr("r", 2);
+    }
 
     public ngOnChanges(changes: SimpleChanges) {
         let data: SimpleChange = changes.Irises;
@@ -56,31 +104,17 @@ export class DrawPlotComponent implements OnChanges{
     public draw() {
         const cur = this;
 
-        const margin = {top: 5, right: 10, bottom: 20, left: 30};
-        const width = 200 - margin.left - margin.right;
-        const height = 150 - margin.top - margin.bottom;
-
         // setup x
         const xValue = (d: IIris): number => cur.getCurValue(d, true);
-        const xScale = d3.scaleLinear().range([0, width]);
+        const xScale = d3.scaleLinear().range([0, config.width]);
         const xAxis = d3.axisBottom(xScale);
         const xMap = (d: IIris) => xScale(xValue(d));
 
         // setup y
         const yValue = (d: IIris): number => cur.getCurValue(d, false);
-        const yScale = d3.scaleLinear().range([height, 0]);
+        const yScale = d3.scaleLinear().range([config.height, 0]);
         const yAxis = d3.axisLeft(yScale);
         const yMap = (d: IIris) => yScale(yValue(d));
-
-        const cValue = (d: IIris) => d.species;
-        const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-        // add the graph canvas to the body of the webpage
-        const svg = d3.select("div").append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // add the tooltip area to the webpage
         const tooltip = d3.select("div").append("div")
@@ -94,39 +128,15 @@ export class DrawPlotComponent implements OnChanges{
         xScale.domain([minx - 1, maxx + 1]);
         yScale.domain([miny - 1, maxy + 1]);
 
-        // x-axis
-        svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .attr("class", "x axis")
-        .call(xAxis)
-        .append("text")
-        .attr("class", "label")
-        .attr("x", width)
-        .attr("y", -6)
-        .style("text-anchor", "end")
-        .text("X");
-
-        // y-axis
-        svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-        .append("text")
-        .attr("class", "label")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Y");
-
         // draw dots
-        svg.selectAll(".dodo")
+        this.result = getSvg(xAxis, yAxis).selectAll("circle")
         .data(this.irises)
         .enter().append("circle")
-        .attr("class", "dodo")
+        .attr("id", (d, i) => "dot" + i)
         .attr("r", 2)
         .attr("cx", xMap)
         .attr("cy", yMap)
-        .style("fill", (d: IIris) => color(cValue(d)))
+        .style("fill", (d: IIris) => config.color(config.cValue(d)))
         .on("mouseover", (d: IIris) => {
             tooltip.transition()
                 .duration(500)
@@ -141,27 +151,5 @@ export class DrawPlotComponent implements OnChanges{
                 .duration(500)
                 .style("opacity", 0);
         });
-
-          // draw legend
-        /*var legend = svg.selectAll(".legend")
-        .data(color.domain())
-        .enter().append("g")
-        .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-
-        // draw legend colored rectangles
-        legend.append("rect")
-        .attr("x", width - 18)
-        .attr("width", 18)
-        .attr("height", 18)
-        .style("fill", color);
-
-        // draw legend text
-        legend.append("text")
-        .attr("x", width - 24)
-        .attr("y", 9)
-        .attr("dy", ".35em")
-        .style("text-anchor", "end")
-        .text(function(d) { return d;}) */
     }
 }

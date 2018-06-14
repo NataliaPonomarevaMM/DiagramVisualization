@@ -4,6 +4,8 @@ import { FormsModule } from "@angular/forms";
 import { HttpModule } from "@angular/http";
 import { RouterModule } from "@angular/router";
 
+import { DataService } from "./components/data.service";
+
 import { AppComponent } from "./components/app/app.component";
 import { DrawPlotsComponent } from "./components/draw-plot/draw-plots.component";
 import { DrawPlotComponent } from "./components/draw-plot/plot.component";
@@ -28,6 +30,7 @@ import { RadialComponent } from "./components/radial/radial.component";
         ],
     ),
     ],
+    providers: [DataService],
 })
 export class AppModuleShared {
 }
