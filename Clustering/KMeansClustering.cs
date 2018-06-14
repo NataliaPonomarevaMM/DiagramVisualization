@@ -22,7 +22,28 @@ namespace DiagramVisualization.Clustering
             Initialize();
         }
 
-        public IEnumerable<IEnumerable<double[]>> Start()
+        public List<Vector<double>>[] Start1()
+        {
+            int p = 0;
+            foreach (var item in items)
+            {
+                clusters[p % k].Add(item);
+                p++;
+            }
+            CountMetrics();
+
+            while (toContinue)
+            {
+                Initialize();
+                foreach (var item in items)
+                    clusters[FoundMin(item)].Add(item);
+                toContinue = false;
+                CountMetrics();
+            }
+            return clusters;
+        }
+
+        public IEnumerable<IEnumerable<double[]>> Start2()
         {
             int p = 0;
             foreach (var item in items)
@@ -71,7 +92,7 @@ namespace DiagramVisualization.Clustering
                     newu = newu + item;
 
                 newu = newu * (1 / (double)clusters[i].Count);
-                if (Metrics.EuclideanDistance(newu, u[i], n) < 0.1)
+                if (Metrics.EuclideanDistance(newu, u[i], n) >= 0.1)
                     toContinue = true;
                 u[i] = newu;
             }

@@ -3,17 +3,28 @@ using System.Numerics;
 
 namespace DiagramVisualization.Clustering
 {
-    public class HierarchyTree
+    public abstract class Hierarchy
     {
-        public Vector<double> data;
+        public IEnumerable<IEnumerable<double>> data;
+        public IEnumerable<Hierarchy> children;
+    }
+
+    public class HierarchyTree : Hierarchy
+    {
+        public List<Vector<double>> data;
         public HierarchyTree[] children;
 
-        public HierarchyTree(Vector<double> data)
+        public HierarchyTree(List<Vector<double>> data)
         {
             this.data = data;
             children = new HierarchyTree[0];
         }
-        public HierarchyTree(Vector<double> data, HierarchyTree[] children)
+        public HierarchyTree(HierarchyTree[] children)
+        {
+            this.data = null;
+            this.children = children;
+        }
+        public HierarchyTree(List<Vector<double>> data, HierarchyTree[] children)
         {
             this.data = data;
             this.children = children;
@@ -27,12 +38,13 @@ namespace DiagramVisualization.Clustering
 
         private double CountDist(HierarchyTree tree1, HierarchyTree tree2)
         {
-            return Metrics.EuclideanDistance(tree1.data, tree2.data, n);
+            return Metrics.EuclideanDistance(tree1.data[0], tree2.data[0], n);
         }
 
-        private Vector<double> CountCenter(HierarchyTree tree1, HierarchyTree tree2)
+        private List<Vector<double>> CountCenter(HierarchyTree tree1, HierarchyTree tree2)
         {
-            return (tree1.data + tree2.data) * (0.5);
+            var item = (tree1.data[0] + tree2.data[0]) * (0.5);
+            return new List<Vector<double>>(new Vector<double>[] { item });
         }
 
         public HierarchyClustering(IEnumerable<Vector<double>> items, int n)
@@ -40,7 +52,7 @@ namespace DiagramVisualization.Clustering
             this.n = n;
             this.items = new List<HierarchyTree>();
             foreach (var item in items)
-                this.items.Add(new HierarchyTree(item));
+                this.items.Add(new HierarchyTree(new List<Vector<double>>(new Vector<double>[] { item })));
         }
 
         public HierarchyTree Start()

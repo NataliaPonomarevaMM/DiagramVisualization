@@ -8,13 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace DiagramVisualization.Controllers
 {
     [Route("api/[controller]")]
-    public class SampleDataController : Controller
+    public class KDataController : Controller
     {
         [HttpGet("[action]")]
         public IEnumerable<Iris> Irises()
         {
             var kMeansCluster = new KMeansClustering(Iris.GetFromFile(), 3, 4);
-            var kclusters = kMeansCluster.Start();
+            var kclusters = kMeansCluster.Start2();
             List<Iris> irises = new List<Iris>();
             for (int i = 0; i < 3; i++)
                 foreach (var el in kclusters.ElementAt(i))
@@ -27,10 +27,12 @@ namespace DiagramVisualization.Controllers
     public class HierarchyDataController : Controller
     {
         [HttpGet("[action]")]
-        public void Irises()
+        public Hierarchy Irises()
         {
-            var hierarchyCluster = new HierarchyClustering(Iris.GetFromFile(), 4);
-            var hclusters = hierarchyCluster.Start();
+            var hierarchyCluster = new KHierarchyClustering(Iris.GetFromFile(), 3, 4);
+            var root = hierarchyCluster.Start();
+
+            return root;
         }
     }
 
