@@ -24,9 +24,10 @@ const config = {
     templateUrl: "./radial.component.html",
 })
 export class RadialComponent implements OnChanges, OnInit {
-    @Input() public Irises: IHierarchy;
-    private irises: IHierarchy;
-    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, d3.BaseType, {}>;
+    @Input() public Irises: IHierarchy | null = null;
+    private irises: IHierarchy | null = null;
+    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, 
+                    d3.BaseType, {}> | null = null;
 
     constructor(private data: DataService) {
     }
@@ -37,7 +38,9 @@ export class RadialComponent implements OnChanges, OnInit {
 
     public drawBigDots(message: string) {
         const splitted = message.split(" ");
-        this.result.style("fill", (d) => splitted[0] === "on" && (d.data as IHierarchy).species === splitted[1] ?
+        if (this.result != null)
+            this.result.style("fill", (d) => splitted[0] === "on" && 
+                (d.data as IHierarchy).species === splitted[1] ?
             config.color((d.data as IHierarchy).species + d.value + d.depth)
             : "null");
     }
@@ -59,22 +62,20 @@ export class RadialComponent implements OnChanges, OnInit {
             .style("opacity", 0);
 
         // Find data root
-        const root = d3.hierarchy<IHierarchy>(this.irises, (d: IHierarchy) => d.children ? d.children : null)
+        const root = d3.hierarchy<IHierarchy>(this.irises as IHierarchy, 
+            (d: IHierarchy) => d.children ? d.children : null)
             .sum((d: IHierarchy) => 1);
         const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants();
 
         this.result = g.selectAll("circle")
             .data(desc).enter().append("path")
             .attr("display", (d) => d.depth ? null : "none")
-            .attr("id", (d, i) => "circle" + i)
+            .attr("id", (d, i) => "radial" + (d.data as IHierarchy).id)
             .attr("d", config.arc)
             .style("stroke", "#fff")
             .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth))
             .on("mouseover", (d, i) => {
-                this.data.sendRadial("on " + (d.data as IHierarchy).species);
-                // d3.select("#circle" + i)
-                //    .style("stroke", "red")
-                //    .style("fill", "none");
+                this.data.sendRadial("on " + (d.data as IHierarchy).id);
                 tooltip.transition()
                     .duration(400)
                     .style("opacity", .9);
@@ -83,10 +84,7 @@ export class RadialComponent implements OnChanges, OnInit {
                     .style("top", d3.event.pageY + "px");
             })
             .on("mouseout", (d, i) => {
-                this.data.sendRadial("out " + (d.data as IHierarchy).species);
-                // d3.select("#circle" + i)
-                //    .style("stroke", "#fff")
-                //    .style("fill", () => config.color((d.data as IHierarchy).species + d.value + d.depth));
+                this.data.sendRadial("out " + (d.data as IHierarchy).id);
                 tooltip.transition()
                     .duration(400)
                     .style("opacity", 0);

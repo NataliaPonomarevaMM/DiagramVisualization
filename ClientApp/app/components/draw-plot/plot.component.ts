@@ -1,67 +1,28 @@
-import { Component, Inject, Input, OnChanges, OnInit,
-        SimpleChange, SimpleChanges } from "@angular/core";
+import { Component, Input, Output, OnChanges,
+        SimpleChange, SimpleChanges, EventEmitter } from "@angular/core";
 import * as d3 from "d3";
-import { range } from "d3";
-import { DataService } from "../data.service";
-import { IIris} from "../iris";
-
-const margin = {
-    bottom: 20,
-    left: 30,
-    right: 10,
-    top: 5,
-};
-const config = {
-    cValue: (d: IIris) => d.species,
-    color: d3.scaleOrdinal(d3.schemeCategory10),
-    height: 150 - margin.top - margin.bottom,
-    width: 200 - margin.left - margin.right,
-};
-
-const getSvg = (xAxis: any, yAxis: any) => {
-    const svg = d3.select("div").append("svg")
-            .attr("width", config.width + margin.left + margin.right)
-            .attr("height", config.height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    // x-axis
-    svg.append("g")
-    .attr("transform", "translate(0," + config.height + ")")
-    .attr("class", "x axis").call(xAxis).append("text")
-    .attr("class", "label").attr("x", config.width).attr("y", -6)
-    .style("text-anchor", "end").text("X");
-
-    // y-axis
-    svg.append("g")
-    .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
-    .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
-    .style("text-anchor", "end").text("Y");
-    return svg;
-};
+import { IIris, IHierarchy } from "../iris";
+import { getSvg, config, getAxisValue } from "../config";
 
 @Component({
     selector: "plot",
     templateUrl: "./plot.component.html",
 })
-export class DrawPlotComponent implements OnChanges, OnInit {
-    @Input() public Irises: IIris[] = [];
+export class DrawPlotComponent implements OnChanges {
+    @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
-    private irises: IIris[] = [];
+    @Input() public Message: string = "";
+    @Output() public Event = new EventEmitter<string>();
+    private irises: IHierarchy | null = null;
     private xMean: string = "";
     private yMean: string = "";
-    private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>;
-
-    constructor(private data: DataService) {
-    }
-
-    public ngOnInit() {
-        this.data.currentRadialMessage.subscribe((message) => this.drawBigDots(message));
-    }
+    private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
 
     public drawBigDots(message: string) {
         const splitted = message.split(" ");
-        this.result.attr("r", (d) => splitted[0] === "on" && d.species === splitted[1] ? 5 : 2);
+        if (this.result != null)
+            this.result.attr("r", (d) => splitted[0] === "on" && d.species === splitted[1] ? 5 : 2);
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -77,40 +38,25 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         if (data !== undefined) {
             this.yMean = data.currentValue;
         }
+        data = changes.Message;
+        if (data !== undefined) {
+            this.drawBigDots(data.currentValue);
+        }
 
-        console.log(this.irises);
-        if (this.irises.length !== 0) {
+        if (this.irises !== null) {
             this.draw();
         }
     }
 
-    public getCurValue(el: IIris, d: boolean): number {
-        const toCompare = d ? this.xMean : this.yMean;
-        switch (toCompare) {
-        case "petalLength":
-            return el.petalLength;
-        case "petalWidth":
-            return el.petalWidth;
-        case "sepalLength":
-            return el.sepalLength;
-        case "sepalWidth":
-            return el.sepalWidth;
-        default:
-            return el.petalLength;
-        }
-    }
-
     public draw() {
-        const cur = this;
-
         // setup x
-        const xValue = (d: IIris): number => cur.getCurValue(d, true);
+        const xValue = (d: IIris): number => getAxisValue(d, this.xMean);
         const xScale = d3.scaleLinear().range([0, config.width]);
         const xAxis = d3.axisBottom(xScale);
         const xMap = (d: IIris) => xScale(xValue(d));
 
         // setup y
-        const yValue = (d: IIris): number => cur.getCurValue(d, false);
+        const yValue = (d: IIris): number => getAxisValue(d, this.yMean);
         const yScale = d3.scaleLinear().range([config.height, 0]);
         const yAxis = d3.axisLeft(yScale);
         const yMap = (d: IIris) => yScale(yValue(d));
@@ -120,16 +66,21 @@ export class DrawPlotComponent implements OnChanges, OnInit {
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        const minx = d3.min(this.irises, xValue) || 0;
-        const maxx = d3.max(this.irises, xValue) || 0;
-        const miny = d3.min(this.irises, yValue) || 0;
-        const maxy = d3.max(this.irises, yValue) || 0;
+        const root = d3.hierarchy<IHierarchy>(this.irises as IHierarchy, 
+            (d: IHierarchy) => d.children ? d.children : null);
+
+        const irises = root.leaves().map(el => el.data.data).reduce((prev, cur) => prev.concat(cur));
+
+        const minx = d3.min(irises, xValue) || 0;
+        const maxx = d3.max(irises, xValue) || 0;
+        const miny = d3.min(irises, yValue) || 0;
+        const maxy = d3.max(irises, yValue) || 0;
         xScale.domain([minx - 1, maxx + 1]);
         yScale.domain([miny - 1, maxy + 1]);
 
         // draw dots
         this.result = getSvg(xAxis, yAxis).selectAll("circle")
-        .data(this.irises)
+        .data(irises)
         .enter().append("circle")
         .attr("id", (d, i) => "dot" + i)
         .attr("r", 2)
@@ -137,7 +88,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         .attr("cy", yMap)
         .style("fill", (d: IIris) => config.color(config.cValue(d)))
         .on("mouseover", (d: IIris) => {
-            this.data.sendPlot("on " + d.species);
+            this.Event.emit("on " + d.species);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", .9);
@@ -147,7 +98,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
                 .style("top", d3.event.pageY + "px");
         })
         .on("mouseout", (d: IIris) => {
-            this.data.sendPlot("out " + d.species);
+            this.Event.emit("out " + d.species);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);

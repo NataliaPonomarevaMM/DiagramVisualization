@@ -4,10 +4,12 @@ export interface IIris {
     petalLength: number;
     petalWidth: number;
     species: string;
+    id: string;
 }
 
 export interface IHierarchy {
-    data: number[];
+    data: IIris[];
+    id: string;
     species: string;
     children: IHierarchy[];
 }

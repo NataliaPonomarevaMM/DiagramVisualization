@@ -3,8 +3,8 @@ import { BehaviorSubject } from "rxjs";
 
 @Injectable()
 export class DataService {
-  public plotMessageSource = new BehaviorSubject("default message");
-  public radialMessageSource = new BehaviorSubject("default message");
+  public plotMessageSource = new BehaviorSubject("");
+  public radialMessageSource = new BehaviorSubject("");
   public currentPlotMessage = this.plotMessageSource.asObservable();
   public currentRadialMessage = this.radialMessageSource.asObservable();
 

@@ -15,7 +15,7 @@ namespace DiagramVisualization.Controllers
             var kclusters = kMeansCluster.Start2();
             List<Iris> irises = new List<Iris>();
             for (int i = 0; i < 3; i++)
-                irises.AddRange(Iris.Convert(kclusters.ElementAt(i), Iris.irisNames[i]));
+                irises.AddRange(Iris.Convert(kclusters.ElementAt(i), Iris.irisNames[i], ""));
             return irises;
         }
     }
