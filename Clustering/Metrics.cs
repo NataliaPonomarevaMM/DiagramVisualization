@@ -35,6 +35,7 @@ namespace DiagramVisualization.Clustering
         private Hierarchy(HierarchyTree tree, string name, string id)
         {
             this.species = name;
+            this.id = id;
             this.data = tree.data is null ? null : Iris.Convert(tree.data, name, id);
             this.children = (new List<HierarchyTree>(tree.children))
                 .Select((item, i) => new Hierarchy(item, name, id + i.ToString()));

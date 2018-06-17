@@ -7,7 +7,6 @@ import { RouterModule } from "@angular/router";
 import { DataService } from "./components/data.service";
 
 import { AppComponent } from "./components/app/app.component";
-import { DrawPlotsComponent } from "./components/draw-plot/draw-plots.component";
 import { DrawPlotComponent } from "./components/draw-plot/plot.component";
 import { FetchDataComponent } from "./components/fetchdata/fetchdata.component";
 import { RadialComponent } from "./components/radial/radial.component";
@@ -17,7 +16,6 @@ import { RadialComponent } from "./components/radial/radial.component";
         AppComponent,
         FetchDataComponent,
         RadialComponent,
-        DrawPlotsComponent,
         DrawPlotComponent,
     ],
     imports: [

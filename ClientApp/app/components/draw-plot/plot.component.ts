@@ -1,28 +1,36 @@
-import { Component, Input, Output, OnChanges,
-        SimpleChange, SimpleChanges, EventEmitter } from "@angular/core";
+import { Component, Input, OnChanges, OnInit,
+        SimpleChange, SimpleChanges } from "@angular/core";
 import * as d3 from "d3";
 import { IIris, IHierarchy } from "../iris";
 import { getSvg, config, getAxisValue } from "../config";
+import { DataService } from "../data.service";
 
 @Component({
     selector: "plot",
     templateUrl: "./plot.component.html",
 })
-export class DrawPlotComponent implements OnChanges {
+export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
-    @Input() public Message: string = "";
-    @Output() public Event = new EventEmitter<string>();
     private irises: IHierarchy | null = null;
     private xMean: string = "";
     private yMean: string = "";
-    private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
+    private result: d3.Selection<SVGAElement, IIris, d3.BaseType, {}> | null = null;
+    private brush = d3.brush().on("end", this.brushended);
+
+    constructor(private data: DataService) {
+    }
+
+    public ngOnInit() {
+        this.data.currentRadialMessage.subscribe((message) => this.drawBigDots(message));
+    }
 
     public drawBigDots(message: string) {
         const splitted = message.split(" ");
         if (this.result != null)
-            this.result.attr("r", (d) => splitted[0] === "on" && d.species === splitted[1] ? 5 : 2);
+            this.result.attr("r", (d) => splitted[0] === "on" &&
+             d.id.lastIndexOf(splitted[1], 0) === 0 ? 5 : 2);
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -45,6 +53,13 @@ export class DrawPlotComponent implements OnChanges {
 
         if (this.irises !== null) {
             this.draw();
+        }
+    }
+
+    public brushended() {
+        var s = d3.event.selection;
+        if (s && this.result) {
+            this.result.select<SVGGElement>(".brush").call(this.brush.move, null);
         }
     }
 
@@ -77,7 +92,6 @@ export class DrawPlotComponent implements OnChanges {
         const maxy = d3.max(irises, yValue) || 0;
         xScale.domain([minx - 1, maxx + 1]);
         yScale.domain([miny - 1, maxy + 1]);
-
         // draw dots
         this.result = getSvg(xAxis, yAxis).selectAll("circle")
         .data(irises)
@@ -88,7 +102,8 @@ export class DrawPlotComponent implements OnChanges {
         .attr("cy", yMap)
         .style("fill", (d: IIris) => config.color(config.cValue(d)))
         .on("mouseover", (d: IIris) => {
-            this.Event.emit("on " + d.species);
+            console.log("plot sent");
+            this.data.sendPlot("on " + d.id);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", .9);
@@ -98,10 +113,14 @@ export class DrawPlotComponent implements OnChanges {
                 .style("top", d3.event.pageY + "px");
         })
         .on("mouseout", (d: IIris) => {
-            this.Event.emit("out " + d.species);
+            this.data.sendPlot("out " + d.id);
             tooltip.transition()
                 .duration(500)
                 .style("opacity", 0);
-        });
+        })
+        .append("g")
+            .attr("class", "brush")
+            .call(this.brush)
+        ;
     }
 }

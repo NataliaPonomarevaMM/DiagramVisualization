@@ -37,12 +37,16 @@ export class RadialComponent implements OnChanges, OnInit {
     }
 
     public drawBigDots(message: string) {
+        console.log("radial got");
+        console.log(this.result);
+        console.log(message);
         const splitted = message.split(" ");
         if (this.result != null)
             this.result.style("fill", (d) => splitted[0] === "on" && 
-                (d.data as IHierarchy).species === splitted[1] ?
+                (d.data as IHierarchy).id === splitted[1] ||
+                splitted[0] === "out" ?
             config.color((d.data as IHierarchy).species + d.value + d.depth)
-            : "null");
+            : "none");
     }
 
     public ngOnChanges(changes: SimpleChanges) {
