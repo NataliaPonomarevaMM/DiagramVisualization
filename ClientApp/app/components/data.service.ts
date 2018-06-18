@@ -7,11 +7,16 @@ export class DataService {
   public radialMessageSource = new BehaviorSubject("out");
   public currentPlotMessage = this.plotMessageSource.asObservable();
   public currentRadialMessage = this.radialMessageSource.asObservable();
+  public Num = 0;
 
   public sendRadial(message: string) {
     this.radialMessageSource.next(message);
   }
   public sendPlot(message: string) {
     this.plotMessageSource.next(message);
+  }
+
+  public getNumber() {
+    return this.Num++;
   }
 }

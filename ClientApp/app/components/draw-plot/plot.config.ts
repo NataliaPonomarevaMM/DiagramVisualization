@@ -14,17 +14,18 @@ export const config = {
     width: 200 - margin.left - margin.right,
 };
 
-const tooltip = d3.select("div").append("div")
-                .attr("class", "tooltip")
-                .style("opacity", 0);
-
-export const getSvg = (xAxis: d3.Axis<number | {valueOf(): number; }>,
+export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
+                       xAxis: d3.Axis<number | {valueOf(): number; }>,
                        yAxis: d3.Axis<number | {valueOf(): number; }>) => {
-    const svg = d3.select("div").append("svg")
-            .attr("width", config.width + margin.left + margin.right)
-            .attr("height", config.height + margin.top + margin.bottom)
+    const svg = selection.select("div").append("svg")
+//              .attr("class", "svg_plot")
+//            .attr("width", config.width + margin.left + margin.right)
+//            .attr("height", config.height + margin.top + margin.bottom)
+            .attr("width", "100%")
+            .attr("height", 200)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
     // x-axis
     svg.append<SVGGElement>("g")
     .attr("transform", "translate(0," + config.height + ")")
@@ -44,6 +45,9 @@ export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                         irises: IIris[], x: string, y: string,
                         xMap: (d: IIris, axis: string) => number,
                         yMap: (d: IIris, axis: string) => number) => {
+    const tooltip = svg.append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
     return svg.selectAll("circle")
         .data(irises)
         .enter().append("circle")
@@ -73,6 +77,7 @@ export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                          xMap: (d: IIris, axis: string) => number,
                          yMap: (d: IIris, axis: string) => number) => {
     const brush = d3.brush()
+            .extent([[0, 0], [config.width, config.height]])
             .on("start", () => { send("start"); })
             .on("brush", () => {
                 send("start");
@@ -86,7 +91,6 @@ export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                 });
             })
             .on("end", () => { send("stop"); });
-
     return svg.append<SVGGElement>("g").call(brush);
 };
 

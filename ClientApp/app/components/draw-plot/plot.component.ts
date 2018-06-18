@@ -5,6 +5,21 @@ import { DataService } from "../data.service";
 import { IHierarchy,  IIris } from "../iris";
 import * as config from "./plot.config";
 
+const getIndex = (str: string): number => {
+    switch (str) {
+    case "sepalLength":
+        return 0;
+    case "sepalWidth":
+        return 1;
+    case "petalLength":
+        return 2;
+    case "petalWidth":
+        return 3;
+    default:
+        return 0;
+    }
+};
+
 @Component({
     selector: "plot",
     templateUrl: "./plot.component.html",
@@ -13,13 +28,18 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
+    public id: string;
     private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
 
     constructor(private data: DataService) {
+        this.id = "div" + data.getNumber();
     }
 
     public ngOnInit() {
-        this.data.currentRadialMessage.subscribe((msg) => this.result ? config.getMessage(this.result, msg) : null);
+        this.data.currentRadialMessage.subscribe((msg) => {
+            // this.draw(this.Irises as IHierarchy, this.XMean, this.YMean);
+            return this.result ? config.getMessage(this.result, msg) : null;
+        });
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -52,8 +72,10 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         xScale.domain([minx - 1, maxx + 1]);
         yScale.domain([miny - 1, maxy + 1]);
 
-        const svg = config.getSvg(xAxis, yAxis);
+        const t = d3.selectAll("plot").filter((d, i) => i === (getIndex(xMean) * 4 + getIndex(yMean)));
+        const svg = config.getSvg(t, xAxis, yAxis);
         this.result = config.setData(svg, irises, xMean, yMean, xMap, yMap);
-        config.setBrush(svg, this.result, xMean, yMean, (msg) => this.data.sendPlot(msg), xMap, yMap);
+        const some = config.setBrush(svg, this.result, xMean, yMean, (msg) => this.data.sendPlot(msg), xMap, yMap);
+        console.log(svg);
     }
 }
