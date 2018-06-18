@@ -9,11 +9,9 @@ export class DataService {
   public currentRadialMessage = this.radialMessageSource.asObservable();
 
   public sendRadial(message: string) {
-    console.log("radial message");
     this.radialMessageSource.next(message);
   }
   public sendPlot(message: string) {
-    console.log("plot message");
     this.plotMessageSource.next(message);
   }
 }

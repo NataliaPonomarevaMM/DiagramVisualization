@@ -48,4 +48,4 @@ export const getAxisValue = (el: IIris, axis: string): number => {
     default:
         return el.petalLength;
     }
-}
+};

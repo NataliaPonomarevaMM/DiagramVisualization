@@ -26,7 +26,7 @@ const config = {
 export class RadialComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy | null = null;
     private irises: IHierarchy | null = null;
-    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, 
+    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>,
                     d3.BaseType, {}> | null = null;
 
     constructor(private data: DataService) {
@@ -37,16 +37,21 @@ export class RadialComponent implements OnChanges, OnInit {
     }
 
     public drawBigDots(message: string) {
-        console.log("radial got");
-        console.log(this.result);
-        console.log(message);
         const splitted = message.split(" ");
-        if (this.result != null)
-            this.result.style("fill", (d) => splitted[0] === "on" && 
-                (d.data as IHierarchy).id === splitted[1] ||
-                splitted[0] === "out" ?
-            config.color((d.data as IHierarchy).species + d.value + d.depth)
-            : "none");
+        if (this.result) {
+            switch (splitted[0]) {
+                case "start":
+                    this.result.style("fill", "none");
+                    break;
+                case "on":
+                    this.result.filter((d) => splitted[1].lastIndexOf((d.data as IHierarchy).id, 0) === 0)
+                        .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
+                    break;
+                case "stop":
+                    this.result.style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
+                    break;
+            }
+        }
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -66,7 +71,7 @@ export class RadialComponent implements OnChanges, OnInit {
             .style("opacity", 0);
 
         // Find data root
-        const root = d3.hierarchy<IHierarchy>(this.irises as IHierarchy, 
+        const root = d3.hierarchy<IHierarchy>(this.irises as IHierarchy,
             (d: IHierarchy) => d.children ? d.children : null)
             .sum((d: IHierarchy) => 1);
         const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants();
