@@ -33,7 +33,7 @@ export class RadialComponent implements OnChanges, OnInit {
             (d: IHierarchy) => d.children ? d.children : null)
             .sum((d: IHierarchy) => 1);
         const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants();
-        const svg = config.getSvg();
-        this.result = config.getData(svg, desc, (msg) => this.result ? config.getMessage(this.result, msg) : null);
+        const svg = config.configSvg(d3.select("svg"));
+        this.result = config.getData(svg, desc, (msg) => this.data.sendRadial(msg));
     }
 }

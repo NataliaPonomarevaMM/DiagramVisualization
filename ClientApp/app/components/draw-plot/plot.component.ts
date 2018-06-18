@@ -29,19 +29,31 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         if (irises && xMean && yMean) {
             this.draw(irises.currentValue, xMean.currentValue, yMean.currentValue);
         }
-
-        const msg = changes.Message;
-        if (msg !== undefined && this.result) {
-            config.getMessage(this.result, msg.currentValue);
-        }
     }
 
     public draw(data: IHierarchy, xMean: string, yMean: string) {
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));
-        const svg = config.getSvg();
-        this.result = config.setData(svg, irises, xMean, yMean);
-        config.setBrush(svg, this.result, xMean, yMean, (msg) =>
-            this.result ? config.getMessage(this.result, msg) : null);
+
+        const xValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
+        const xScale = d3.scaleLinear().range([0, config.config.width]);
+        const xAxis = d3.axisBottom(xScale);
+        const xMap = (d: IIris, axis: string) => xScale(xValue(d, axis));
+
+        const yValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
+        const yScale = d3.scaleLinear().range([config.config.height, 0]);
+        const yAxis = d3.axisLeft(yScale);
+        const yMap = (d: IIris, axis: string) => yScale(yValue(d, axis));
+
+        const minx = d3.min(irises, (d) => xValue(d, xMean)) || 0;
+        const maxx = d3.max(irises, (d) => xValue(d, xMean)) || 0;
+        const miny = d3.min(irises, (d) => yValue(d, yMean)) || 0;
+        const maxy = d3.max(irises, (d) => yValue(d, yMean)) || 0;
+        xScale.domain([minx - 1, maxx + 1]);
+        yScale.domain([miny - 1, maxy + 1]);
+
+        const svg = config.getSvg(xAxis, yAxis);
+        this.result = config.setData(svg, irises, xMean, yMean, xMap, yMap);
+        config.setBrush(svg, this.result, xMean, yMean, (msg) => this.data.sendPlot(msg), xMap, yMap);
     }
 }

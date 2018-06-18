@@ -19,9 +19,8 @@ const tooltip = d3.select("div").append("div")
 
 export const radius = (Math.min(sizes.vWidth, sizes.vHeight) / 2) - 10;
 
-export const getSvg = () => {
-    return d3.select("svg")
-            .attr("width", sizes.vWidth)
+export const configSvg = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>) => {
+    return svg.attr("width", sizes.vWidth)
             .attr("height", sizes.vHeight)
             .append("g")
             .attr("transform", "translate(" + sizes.vWidth / 2 + "," + sizes.vHeight / 2 + ")");

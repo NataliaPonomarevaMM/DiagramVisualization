@@ -7,29 +7,19 @@ const margin = {
     right: 10,
     top: 5,
 };
-const config = {
+export const config = {
     cValue: (d: IIris) => d.species,
     color: d3.scaleOrdinal(d3.schemeCategory10),
     height: 150 - margin.top - margin.bottom,
     width: 200 - margin.left - margin.right,
 };
 
-const xValue = (d: IIris, axis: string): number => getAxisValue(d, axis);
-const xScale = d3.scaleLinear().range([0, config.width]);
-const xAxis = d3.axisBottom(xScale);
-export const xMap = (d: IIris, axis: string) => xScale(xValue(d, axis));
-
-// setup y
-const yValue = (d: IIris, axis: string): number => getAxisValue(d, axis);
-const yScale = d3.scaleLinear().range([config.height, 0]);
-const yAxis = d3.axisLeft(yScale);
-export const yMap = (d: IIris, axis: string) => yScale(yValue(d, axis));
-
 const tooltip = d3.select("div").append("div")
                 .attr("class", "tooltip")
                 .style("opacity", 0);
 
-export const getSvg = () => {
+export const getSvg = (xAxis: d3.Axis<number | {valueOf(): number; }>,
+                       yAxis: d3.Axis<number | {valueOf(): number; }>) => {
     const svg = d3.select("div").append("svg")
             .attr("width", config.width + margin.left + margin.right)
             .attr("height", config.height + margin.top + margin.bottom)
@@ -51,40 +41,37 @@ export const getSvg = () => {
 };
 
 export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
-                        irises: IIris[], x: string, y: string) => {
-    const minx = d3.min(irises, (d) => xValue(d, x)) || 0;
-    const maxx = d3.max(irises, (d) => xValue(d, x)) || 0;
-    const miny = d3.min(irises, (d) => yValue(d, y)) || 0;
-    const maxy = d3.max(irises, (d) => yValue(d, y)) || 0;
-    xScale.domain([minx - 1, maxx + 1]);
-    yScale.domain([miny - 1, maxy + 1]);
-
+                        irises: IIris[], x: string, y: string,
+                        xMap: (d: IIris, axis: string) => number,
+                        yMap: (d: IIris, axis: string) => number) => {
     return svg.selectAll("circle")
-    .data(irises)
-    .enter().append("circle")
-    .attr("id", (d, i) => "dot" + i)
-    .attr("r", 2)
-    .attr("cx", (d) => xMap(d, x))
-    .attr("cy", (d) => yMap(d, y))
-    .style("fill", (d: IIris) => config.color(config.cValue(d)))
-    .on("mouseover", (d: IIris) => {
-        tooltip.transition()
-            .duration(500)
-            .style("opacity", .9);
-        tooltip.html(d.species + "<br/> (" + xValue(d, x) + ", " + yValue(d, y) + ")")
-            .style("left", d3.event.pageX + "px")
-            .style("top", d3.event.pageY + "px");
-    })
-    .on("mouseout", (d: IIris) => {
-        tooltip.transition()
-            .duration(500)
-            .style("opacity", 0);
-    });
+        .data(irises)
+        .enter().append("circle")
+        .attr("id", (d, i) => "dot" + i)
+        .attr("r", 2)
+        .attr("cx", (d) => xMap(d, x))
+        .attr("cy", (d) => yMap(d, y))
+        .style("fill", (d: IIris) => config.color(config.cValue(d)))
+        .on("mouseover", (d: IIris) => {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", .9);
+            tooltip.html(d.species)
+                .style("left", d3.event.pageX + "px")
+                .style("top", d3.event.pageY + "px");
+        })
+        .on("mouseout", (d: IIris) => {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
 };
 
 export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                          data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>,
-                         x: string, y: string, send: (msg: string) => void) => {
+                         x: string, y: string, send: (msg: string) => void,
+                         xMap: (d: IIris, axis: string) => number,
+                         yMap: (d: IIris, axis: string) => number) => {
     const brush = d3.brush()
             .on("start", () => { send("start"); })
             .on("brush", () => {
@@ -94,7 +81,7 @@ export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                         xMap(d, x) <= d3.event.selection[1][0] &&
                         yMap(d, y) >= d3.event.selection[0][1] &&
                         yMap(d, y) <= d3.event.selection[1][1]) {
-                        send("on " + d.id);
+                            send("on " + d.id);
                     }
                 });
             })
