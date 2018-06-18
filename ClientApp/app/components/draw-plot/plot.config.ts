@@ -7,30 +7,32 @@ const margin = {
     right: 10,
     top: 5,
 };
-export const config = {
-    cValue: (d: IIris) => d.species,
-    color: d3.scaleOrdinal(d3.schemeCategory10),
-    height: 150 - margin.top - margin.bottom,
-    width: 200 - margin.left - margin.right,
-};
 
-export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
-                       xAxis: d3.Axis<number | {valueOf(): number; }>,
-                       yAxis: d3.Axis<number | {valueOf(): number; }>) => {
+const cValue = (d: IIris) => d.species;
+const color = d3.scaleOrdinal(d3.schemeCategory10);
+export let height = 150 - margin.top - margin.bottom;
+export let width = 200 - margin.left - margin.right;
+
+export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any>) => {
     const svg = selection.select("div").append("svg")
-//              .attr("class", "svg_plot")
-//            .attr("width", config.width + margin.left + margin.right)
-//            .attr("height", config.height + margin.top + margin.bottom)
             .attr("width", "100%")
-            .attr("height", 200)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // x-axis
+    // width = +svg.attr("width");
+    console.log(width);
+    height = 3 * width / 4;
+    svg.attr("height", height);
+    return svg;
+};
+
+export const configureAxis = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
+                              xAxis: d3.Axis<number | {valueOf(): number; }>,
+                              yAxis: d3.Axis<number | {valueOf(): number; }>) => {
     svg.append<SVGGElement>("g")
-    .attr("transform", "translate(0," + config.height + ")")
+    .attr("transform", "translate(0," + height + ")")
     .attr("class", "x axis").call(xAxis).append("text")
-    .attr("class", "label").attr("x", config.width).attr("y", -6)
+    .attr("class", "label").attr("x", width).attr("y", -6)
     .style("text-anchor", "end").text("X");
 
     // y-axis
@@ -38,7 +40,6 @@ export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any
     .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
     .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
     .style("text-anchor", "end").text("Y");
-    return svg;
 };
 
 export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
@@ -55,7 +56,7 @@ export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
         .attr("r", 2)
         .attr("cx", (d) => xMap(d, x))
         .attr("cy", (d) => yMap(d, y))
-        .style("fill", (d: IIris) => config.color(config.cValue(d)))
+        .style("fill", (d: IIris) => color(cValue(d)))
         .on("mouseover", (d: IIris) => {
             tooltip.transition()
                 .duration(500)
@@ -77,7 +78,7 @@ export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                          xMap: (d: IIris, axis: string) => number,
                          yMap: (d: IIris, axis: string) => number) => {
     const brush = d3.brush()
-            .extent([[0, 0], [config.width, config.height]])
+            .extent([[0, 0], [width, height]])
             .on("start", () => { send("start"); })
             .on("brush", () => {
                 send("start");

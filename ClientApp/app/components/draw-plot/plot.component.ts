@@ -28,18 +28,13 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
-    public id: string;
     private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
 
     constructor(private data: DataService) {
-        this.id = "div" + data.getNumber();
     }
 
     public ngOnInit() {
-        this.data.currentRadialMessage.subscribe((msg) => {
-            // this.draw(this.Irises as IHierarchy, this.XMean, this.YMean);
-            return this.result ? config.getMessage(this.result, msg) : null;
-        });
+        this.data.currentRadialMessage.subscribe((msg) =>  this.result ? config.getMessage(this.result, msg) : null);
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -55,13 +50,14 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));
 
+        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === (getIndex(xMean) * 4 + getIndex(yMean))));
         const xValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
-        const xScale = d3.scaleLinear().range([0, config.config.width]);
+        const xScale = d3.scaleLinear().range([0, config.width]);
         const xAxis = d3.axisBottom(xScale);
         const xMap = (d: IIris, axis: string) => xScale(xValue(d, axis));
 
         const yValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
-        const yScale = d3.scaleLinear().range([config.config.height, 0]);
+        const yScale = d3.scaleLinear().range([config.height, 0]);
         const yAxis = d3.axisLeft(yScale);
         const yMap = (d: IIris, axis: string) => yScale(yValue(d, axis));
 
@@ -71,9 +67,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         const maxy = d3.max(irises, (d) => yValue(d, yMean)) || 0;
         xScale.domain([minx - 1, maxx + 1]);
         yScale.domain([miny - 1, maxy + 1]);
-
-        const t = d3.selectAll("plot").filter((d, i) => i === (getIndex(xMean) * 4 + getIndex(yMean)));
-        const svg = config.getSvg(t, xAxis, yAxis);
+        config.configureAxis(svg, xAxis, yAxis);
         this.result = config.setData(svg, irises, xMean, yMean, xMap, yMap);
         const some = config.setBrush(svg, this.result, xMean, yMean, (msg) => this.data.sendPlot(msg), xMap, yMap);
         console.log(svg);

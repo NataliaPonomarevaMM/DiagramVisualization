@@ -15,8 +15,4 @@ export class DataService {
   public sendPlot(message: string) {
     this.plotMessageSource.next(message);
   }
-
-  public getNumber() {
-    return this.Num++;
-  }
 }
