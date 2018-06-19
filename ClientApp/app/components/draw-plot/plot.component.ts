@@ -5,21 +5,6 @@ import { DataService } from "../data.service";
 import { IHierarchy,  IIris } from "../iris";
 import * as config from "./plot.config";
 
-const getIndex = (str: string): number => {
-    switch (str) {
-    case "sepalLength":
-        return 0;
-    case "sepalWidth":
-        return 1;
-    case "petalLength":
-        return 2;
-    case "petalWidth":
-        return 3;
-    default:
-        return 0;
-    }
-};
-
 @Component({
     selector: "plot",
     templateUrl: "./plot.component.html",
@@ -28,13 +13,17 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
-    private result: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
+    private plot: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
+    private brushSelection: d3.Selection<SVGGElement, {}, HTMLElement, any> | null = null;
+    private brush: d3.BrushBehavior<{}> | null = null;
+    private id = 0;
 
     constructor(private data: DataService) {
     }
 
     public ngOnInit() {
-        this.data.currentRadialMessage.subscribe((msg) =>  this.result ? config.getMessage(this.result, msg) : null);
+        this.data.currentRadialMessage.subscribe((m) => this.getMessage(m));
+        this.data.currentBrushMessage.subscribe((m) => this.stopBrush(m));
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -46,30 +35,31 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         }
     }
 
-    public draw(data: IHierarchy, xMean: string, yMean: string) {
+    private getMessage(msg: string) {
+        const splitted = msg.split(" ");
+        if (this.plot) {
+            this.plot.attr("r", (d) => splitted[0] === "on" &&
+                d.id.lastIndexOf(splitted[1], 0) === 0 ? 5 : 2);
+        }
+    }
+
+    private stopBrush(message: string) {
+        if (this.id !== +message && this.brush && this.brushSelection) {
+            // this.draw(this.Irises as IHierarchy, this.YMean, this.YMean);
+        }
+    }
+
+    private draw(data: IHierarchy, xMean: string, yMean: string) {
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));
 
-        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === (getIndex(xMean) * 4 + getIndex(yMean))));
-        const xValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
-        const xScale = d3.scaleLinear().range([0, config.width]);
-        const xAxis = d3.axisBottom(xScale);
-        const xMap = (d: IIris, axis: string) => xScale(xValue(d, axis));
-
-        const yValue = (d: IIris, axis: string): number => config.getAxisValue(d, axis);
-        const yScale = d3.scaleLinear().range([config.height, 0]);
-        const yAxis = d3.axisLeft(yScale);
-        const yMap = (d: IIris, axis: string) => yScale(yValue(d, axis));
-
-        const minx = d3.min(irises, (d) => xValue(d, xMean)) || 0;
-        const maxx = d3.max(irises, (d) => xValue(d, xMean)) || 0;
-        const miny = d3.min(irises, (d) => yValue(d, yMean)) || 0;
-        const maxy = d3.max(irises, (d) => yValue(d, yMean)) || 0;
-        xScale.domain([minx - 1, maxx + 1]);
-        yScale.domain([miny - 1, maxy + 1]);
-        config.configureAxis(svg, xAxis, yAxis);
-        this.result = config.setData(svg, irises, xMean, yMean, xMap, yMap);
-        const some = config.setBrush(svg, this.result, xMean, yMean, (msg) => this.data.sendPlot(msg), xMap, yMap);
-        console.log(svg);
+        this.id = config.getIndex(xMean) * 4 + config.getIndex(yMean);
+        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === this.id));
+        svg.selectAll("*").remove();
+        const axis = config.configureAxis(svg, irises, xMean, yMean);
+        this.plot = config.setData(svg, irises, xMean, yMean, axis.xMap, axis.yMap);
+        this.brush = config.setBrush(this.plot, xMean, yMean, (m) => this.data.sendPlot(m),
+            this.id, axis.xMap, axis.yMap);
+        this.brushSelection = svg.append<SVGGElement>("g").call(this.brush);
     }
 }

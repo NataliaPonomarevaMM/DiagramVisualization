@@ -10,8 +10,8 @@ const margin = {
 
 const cValue = (d: IIris) => d.species;
 const color = d3.scaleOrdinal(d3.schemeCategory10);
-export let height = 150 - margin.top - margin.bottom;
-export let width = 200 - margin.left - margin.right;
+let height = 150 - margin.top - margin.bottom;
+const width = 200 - margin.left - margin.right;
 
 export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any>) => {
     const svg = selection.select("div").append("svg")
@@ -20,15 +20,30 @@ export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // width = +svg.attr("width");
-    console.log(width);
     height = 3 * width / 4;
     svg.attr("height", height);
     return svg;
 };
 
 export const configureAxis = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
-                              xAxis: d3.Axis<number | {valueOf(): number; }>,
-                              yAxis: d3.Axis<number | {valueOf(): number; }>) => {
+                              irises: IIris[], x: string, y: string) => {
+    const xValue = (d: IIris, axis: string): number => getAxisValue(d, axis);
+    const xScale = d3.scaleLinear().range([0, width]);
+    const xAxis = d3.axisBottom(xScale);
+    const xMap = (d: IIris, axis: string) => xScale(xValue(d, axis));
+
+    const yValue = (d: IIris, axis: string): number => getAxisValue(d, axis);
+    const yScale = d3.scaleLinear().range([height, 0]);
+    const yAxis = d3.axisLeft(yScale);
+    const yMap = (d: IIris, axis: string) => yScale(yValue(d, axis));
+
+    const minx = d3.min(irises, (d) => xValue(d, x)) || 0;
+    const maxx = d3.max(irises, (d) => xValue(d, x)) || 0;
+    const miny = d3.min(irises, (d) => yValue(d, y)) || 0;
+    const maxy = d3.max(irises, (d) => yValue(d, y)) || 0;
+    xScale.domain([minx - 1, maxx + 1]);
+    yScale.domain([miny - 1, maxy + 1]);
+
     svg.append<SVGGElement>("g")
     .attr("transform", "translate(0," + height + ")")
     .attr("class", "x axis").call(xAxis).append("text")
@@ -40,6 +55,7 @@ export const configureAxis = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, an
     .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
     .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
     .style("text-anchor", "end").text("Y");
+    return { xMap, yMap };
 };
 
 export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
@@ -72,16 +88,16 @@ export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
         });
 };
 
-export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
-                         data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>,
+export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>,
                          x: string, y: string, send: (msg: string) => void,
+                         plotId: number,
                          xMap: (d: IIris, axis: string) => number,
                          yMap: (d: IIris, axis: string) => number) => {
-    const brush = d3.brush()
+    return  d3.brush()
             .extent([[0, 0], [width, height]])
-            .on("start", () => { send("start"); })
+            .on("start", () => { send("start " + plotId); })
             .on("brush", () => {
-                send("start");
+                send("start " + plotId);
                 data.each((d) => {
                     if (xMap(d, x) >= d3.event.selection[0][0] &&
                         xMap(d, x) <= d3.event.selection[1][0] &&
@@ -90,15 +106,8 @@ export const setBrush = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                             send("on " + d.id);
                     }
                 });
-            })
-            .on("end", () => { send("stop"); });
-    return svg.append<SVGGElement>("g").call(brush);
-};
-
-export const getMessage = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>, msg: string) => {
-    const splitted = msg.split(" ");
-    data.attr("r", (d) => splitted[0] === "on" &&
-        d.id.lastIndexOf(splitted[1], 0) === 0 ? 5 : 2);
+            });
+            // .on("end", () => { send("stop"); });
 };
 
 export const getAxisValue = (el: IIris, axis: string): number => {
@@ -113,5 +122,20 @@ export const getAxisValue = (el: IIris, axis: string): number => {
         return el.sepalWidth;
     default:
         return el.petalLength;
+    }
+};
+
+export const getIndex = (str: string): number => {
+    switch (str) {
+    case "sepalLength":
+        return 0;
+    case "sepalWidth":
+        return 1;
+    case "petalLength":
+        return 2;
+    case "petalWidth":
+        return 3;
+    default:
+        return 0;
     }
 };
