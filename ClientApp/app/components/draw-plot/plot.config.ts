@@ -50,7 +50,6 @@ export const configureAxis = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, an
     .attr("class", "label").attr("x", width).attr("y", -6)
     .style("text-anchor", "end").text("X");
 
-    // y-axis
     svg.append<SVGGElement>("g")
     .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
     .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
@@ -95,19 +94,24 @@ export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>
                          yMap: (d: IIris, axis: string) => number) => {
     return  d3.brush()
             .extent([[0, 0], [width, height]])
-            .on("start", () => { send("start " + plotId); })
+            .on("start", () => {
+                if (d3.event.selection != null) {
+                    send("start " + plotId);
+                }
+            })
             .on("brush", () => {
-                send("start " + plotId);
-                data.each((d) => {
-                    if (xMap(d, x) >= d3.event.selection[0][0] &&
-                        xMap(d, x) <= d3.event.selection[1][0] &&
-                        yMap(d, y) >= d3.event.selection[0][1] &&
-                        yMap(d, y) <= d3.event.selection[1][1]) {
-                            send("on " + d.id);
-                    }
-                });
+                if (d3.event.selection != null) {
+                    send("start " + plotId);
+                    data.each((d) => {
+                        if (xMap(d, x) >= d3.event.selection[0][0] &&
+                            xMap(d, x) <= d3.event.selection[1][0] &&
+                            yMap(d, y) >= d3.event.selection[0][1] &&
+                            yMap(d, y) <= d3.event.selection[1][1]) {
+                                send("on " + d.id);
+                        }
+                    });
+                }
             });
-            // .on("end", () => { send("stop"); });
 };
 
 export const getAxisValue = (el: IIris, axis: string): number => {

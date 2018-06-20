@@ -45,17 +45,17 @@ export class DrawPlotComponent implements OnChanges, OnInit {
 
     private stopBrush(message: string) {
         if (this.id !== +message && this.brush && this.brushSelection) {
-            // this.draw(this.Irises as IHierarchy, this.YMean, this.YMean);
+            this.brushSelection.call(this.brush.move, null);
         }
     }
 
     private draw(data: IHierarchy, xMean: string, yMean: string) {
+        this.id = config.getIndex(xMean) * 4 + config.getIndex(yMean);
+        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === this.id));
+
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));
 
-        this.id = config.getIndex(xMean) * 4 + config.getIndex(yMean);
-        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === this.id));
-        svg.selectAll("*").remove();
         const axis = config.configureAxis(svg, irises, xMean, yMean);
         this.plot = config.setData(svg, irises, xMean, yMean, axis.xMap, axis.yMap);
         this.brush = config.setBrush(this.plot, xMean, yMean, (m) => this.data.sendPlot(m),
