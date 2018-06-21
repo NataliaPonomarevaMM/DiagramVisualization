@@ -7,6 +7,7 @@ import * as config from "./plot.config";
 
 @Component({
     selector: "plot",
+    styleUrls: ["plot.component.css"],
     templateUrl: "./plot.component.html",
 })
 export class DrawPlotComponent implements OnChanges, OnInit {
@@ -50,7 +51,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
 
     private draw(data: IHierarchy, xMean: string, yMean: string) {
         this.id = config.getIndex(xMean) * 4 + config.getIndex(yMean);
-        const svg = config.getSvg(d3.selectAll("plot").filter((d, i) => i === this.id));
+        const svg = config.getSvg(this.id);
 
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));

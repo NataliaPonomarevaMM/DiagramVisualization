@@ -3,8 +3,8 @@ import { Event, IMessage} from "../data.service";
 import { IIris } from "../iris";
 
 const margin = {
-    bottom: 20,
-    left: 30,
+    bottom: 30,
+    left: 40,
     right: 10,
     top: 5,
 };
@@ -12,17 +12,22 @@ const margin = {
 const cValue = (d: IIris) => d.species;
 const color = d3.scaleOrdinal(d3.schemeCategory10);
 let height = 150 - margin.top - margin.bottom;
-const width = 200 - margin.left - margin.right;
+let width = 200 - margin.left - margin.right;
 
-export const getSvg = (selection: d3.Selection<d3.BaseType, {}, HTMLElement, any>) => {
-    const svg = selection.select("div").append("svg")
-            .attr("width", "100%")
+export const getSvg = (id: number) => {
+    const selection = d3.selectAll("plot").filter((d, i) => i === id);
+
+    const svg = selection.select("div").classed("svg-container", true)
+        .append("svg")
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 300 200")
+            .classed("svg-content-responsive", true)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    const rect = (selection.node() as Element).getBoundingClientRect();
+    width = rect.width - margin.left - margin.right;
+    height = rect.width * 3 / 4 - margin.top - margin.bottom;
 
-    // width = +svg.attr("width");
-    height = 3 * width / 4;
-    svg.attr("height", height);
     return svg;
 };
 
@@ -48,11 +53,13 @@ export const configureAxis = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, an
     svg.append<SVGGElement>("g")
     .attr("transform", "translate(0," + height + ")")
     .attr("class", "x axis").call(xAxis).append("text")
+    .attr("font-size", "8px")
     .attr("class", "label").attr("x", width).attr("y", -6)
     .style("text-anchor", "end").text("X");
 
     svg.append<SVGGElement>("g")
-    .attr("class", "y axis").call(yAxis).append("text").attr("class", "label")
+    .attr("class", "y axis").call(yAxis).append("text")
+    .attr("font-size", "8px").attr("class", "label")
     .attr("transform", "rotate(-90)").attr("y", 6).attr("dy", ".71em")
     .style("text-anchor", "end").text("Y");
     return { xMap, yMap };
