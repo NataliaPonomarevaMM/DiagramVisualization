@@ -104,7 +104,12 @@ export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>
             .extent([[0, 0], [width, height]])
             .on("start", () => {
                 if (d3.event.selection != null) {
-                    send({event: Event.Start, id: plotId.toString()});
+                    if (d3.event.selection[0][0] === d3.event.selection[1][0] &&
+                        d3.event.selection[0][1] === d3.event.selection[1][1]) {
+                            send({event: Event.Stop, id: ""});
+                    } else {
+                            send({event: Event.Start, id: plotId.toString()});
+                    }
                 }
             })
             .on("brush", () => {
