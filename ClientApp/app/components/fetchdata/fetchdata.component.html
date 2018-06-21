@@ -3,6 +3,7 @@
 
 <div *ngIf="hierarchy">
 
+    <button (click)="onClick()">Clear selection</button>
     <radial [Irises]="hierarchy"></radial>
     <ng-template ngFor let-rule [ngForOf]="elementNames" let-ruleIndex="index">
         <div class="row" id="{{rule}}">
