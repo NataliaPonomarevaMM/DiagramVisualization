@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { Event, IMessage} from "../data.service";
 import { IHierarchy } from "../iris";
 
 const sizes = {
@@ -28,7 +29,7 @@ export const configSvg = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>) 
 
 export const getData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                         data: Array<d3.HierarchyRectangularNode<{}>>,
-                        send: (msg: string) => void) => {
+                        send: (msg: IMessage) => void) => {
     return svg.selectAll("circle")
         .data(data).enter().append("path")
         .attr("display", (d: d3.HierarchyRectangularNode<{}>) => d.depth ? null : "none")
@@ -38,7 +39,7 @@ export const getData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
         .style("fill", (d: d3.HierarchyRectangularNode<{}>) =>
             config.color((d.data as IHierarchy).species + d.value + d.depth))
         .on("mouseover", (d: d3.HierarchyRectangularNode<{}>) => {
-            send("on " + (d.data as IHierarchy).id);
+            send({event: Event.Start, id: (d.data as IHierarchy).id});
             tooltip.transition()
                 .duration(400)
                 .style("opacity", .9);
@@ -47,7 +48,7 @@ export const getData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                 .style("top", d3.event.pageY + "px");
         })
         .on("mouseout", (d: d3.HierarchyRectangularNode<{}>) => {
-            send("out " + (d.data as IHierarchy).id);
+            send({event: Event.Stop, id: ""});
             tooltip.transition()
                 .duration(400)
                 .style("opacity", 0);
@@ -55,18 +56,17 @@ export const getData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
 };
 
 export const getMessage = (result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, d3.BaseType, {}>,
-                           msg: string) => {
-    const splitted = msg.split(" ");
-    switch (splitted[0]) {
-        case "start":
+                           msg: IMessage) => {
+    switch (msg.event) {
+        case Event.Start:
             result.style("fill", "none");
             break;
-        case "on":
-            result.filter((d) => splitted[1].lastIndexOf((d.data as IHierarchy).id, 0) === 0)
-                .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
-            break;
-        case "stop":
+        case Event.Stop:
             result.style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
+            break;
+        case Event.Continue:
+            result.filter((d) => msg.id.lastIndexOf((d.data as IHierarchy).id, 0) === 0)
+                .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
             break;
     }
 };

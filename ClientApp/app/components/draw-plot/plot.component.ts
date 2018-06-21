@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, OnInit,
         SimpleChange, SimpleChanges } from "@angular/core";
 import * as d3 from "d3";
-import { DataService } from "../data.service";
+import { DataService, Event, IMessage } from "../data.service";
 import { IHierarchy,  IIris } from "../iris";
 import * as config from "./plot.config";
 
@@ -35,16 +35,15 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         }
     }
 
-    private getMessage(msg: string) {
-        const splitted = msg.split(" ");
+    private getMessage(msg: IMessage) {
         if (this.plot) {
-            this.plot.attr("r", (d) => splitted[0] === "on" &&
-                d.id.lastIndexOf(splitted[1], 0) === 0 ? 5 : 2);
+            this.plot.attr("r", (d) => msg.event === Event.Start &&
+                d.id.lastIndexOf(msg.id, 0) === 0 ? 5 : 2);
         }
     }
 
-    private stopBrush(message: string) {
-        if (this.id !== +message && this.brush && this.brushSelection) {
+    private stopBrush(message: IMessage) {
+        if (this.id !== +message.id && this.brush && this.brushSelection) {
             this.brushSelection.call(this.brush.move, null);
         }
     }

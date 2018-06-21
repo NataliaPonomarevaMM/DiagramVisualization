@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { Event, IMessage} from "../data.service";
 import { IIris } from "../iris";
 
 const margin = {
@@ -88,7 +89,7 @@ export const setData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
 };
 
 export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>,
-                         x: string, y: string, send: (msg: string) => void,
+                         x: string, y: string, send: (msg: IMessage) => void,
                          plotId: number,
                          xMap: (d: IIris, axis: string) => number,
                          yMap: (d: IIris, axis: string) => number) => {
@@ -96,18 +97,18 @@ export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>
             .extent([[0, 0], [width, height]])
             .on("start", () => {
                 if (d3.event.selection != null) {
-                    send("start " + plotId);
+                    send({event: Event.Start, id: plotId.toString()});
                 }
             })
             .on("brush", () => {
                 if (d3.event.selection != null) {
-                    send("start " + plotId);
+                    send({event: Event.Start, id: plotId.toString()});
                     data.each((d) => {
                         if (xMap(d, x) >= d3.event.selection[0][0] &&
                             xMap(d, x) <= d3.event.selection[1][0] &&
                             yMap(d, y) >= d3.event.selection[0][1] &&
                             yMap(d, y) <= d3.event.selection[1][1]) {
-                                send("on " + d.id);
+                                send({event: Event.Continue, id: d.id});
                         }
                     });
                 }

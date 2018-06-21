@@ -1,6 +1,6 @@
 import { Component, Inject } from "@angular/core";
 import { Http } from "@angular/http";
-import { DataService } from "../data.service";
+import { DataService, Event, IMessage } from "../data.service";
 import { IHierarchy, IIris } from "../iris";
 
 @Component({
@@ -18,7 +18,7 @@ export class FetchDataComponent {
     }
 
     public onClick() {
-        this.data.sendPlot("stop");
-        this.data.startBrush("");
+        this.data.sendPlot({event: Event.Stop, id: ""});
+        this.data.sendBrush({event: Event.Stop, id: ""});
     }
 }
