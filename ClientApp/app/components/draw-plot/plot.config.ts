@@ -106,7 +106,7 @@ export const setBrush = (data: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}>
                 if (d3.event.selection != null) {
                     if (d3.event.selection[0][0] === d3.event.selection[1][0] &&
                         d3.event.selection[0][1] === d3.event.selection[1][1]) {
-                            send({event: Event.Stop, id: ""});
+                            send({event: Event.Stop});
                     } else {
                             send({event: Event.Start, id: plotId.toString()});
                     }

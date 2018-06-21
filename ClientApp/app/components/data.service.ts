@@ -9,14 +9,14 @@ export enum Event {
 
 export interface IMessage {
     event: Event;
-    id: string;
+    id?: string;
 }
 
 @Injectable()
 export class DataService {
-    public plotMessageSource = new BehaviorSubject<IMessage>({event: Event.Stop, id: ""});
-    public radialMessageSource = new BehaviorSubject<IMessage>({event: Event.Stop, id: ""});
-    public brushMessageSourse = new BehaviorSubject<IMessage>({event: Event.Stop, id: ""});
+    public plotMessageSource = new BehaviorSubject<IMessage>({event: Event.Stop});
+    public radialMessageSource = new BehaviorSubject<IMessage>({event: Event.Stop});
+    public brushMessageSourse = new BehaviorSubject<IMessage>({event: Event.Stop});
     public currentPlotMessage = this.plotMessageSource.asObservable();
     public currentRadialMessage = this.radialMessageSource.asObservable();
     public currentBrushMessage = this.brushMessageSourse.asObservable();

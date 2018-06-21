@@ -48,7 +48,7 @@ export const getData = (svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                 .style("top", d3.event.pageY + "px");
         })
         .on("mouseout", (d: d3.HierarchyRectangularNode<{}>) => {
-            send({event: Event.Stop, id: ""});
+            send({event: Event.Stop});
             tooltip.transition()
                 .duration(400)
                 .style("opacity", 0);
@@ -65,7 +65,7 @@ export const getMessage = (result: d3.Selection<d3.BaseType, d3.HierarchyRectang
             result.style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
             break;
         case Event.Continue:
-            result.filter((d) => msg.id.lastIndexOf((d.data as IHierarchy).id, 0) === 0)
+            result.filter((d) => msg.id ? msg.id.lastIndexOf((d.data as IHierarchy).id, 0) === 0 : true)
                 .style("fill", (d) => config.color((d.data as IHierarchy).species + d.value + d.depth));
             break;
     }

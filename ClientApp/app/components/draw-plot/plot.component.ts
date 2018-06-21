@@ -38,13 +38,13 @@ export class DrawPlotComponent implements OnChanges, OnInit {
 
     private getMessage(msg: IMessage) {
         if (this.plot) {
-            this.plot.attr("r", (d) => msg.event === Event.Start &&
+            this.plot.attr("r", (d) => msg.event === Event.Start && msg.id &&
                 d.id.lastIndexOf(msg.id, 0) === 0 ? 5 : 2);
         }
     }
 
     private stopBrush(message: IMessage) {
-        if (this.id !== +message.id && this.brush && this.brushSelection) {
+        if (message.id && this.id !== +message.id && this.brush && this.brushSelection) {
             this.brushSelection.call(this.brush.move, null);
         }
     }
