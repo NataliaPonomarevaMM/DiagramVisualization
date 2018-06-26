@@ -1,9 +1,9 @@
 import { Component, Inject,
     Input, OnChanges, OnInit, SimpleChange, SimpleChanges } from "@angular/core";
 import * as d3 from "d3";
-import { DataService } from "../data.service";
+import { DataService, Event, IMessage } from "../data.service";
 import { IHierarchy } from "../iris";
-import * as config from "./radial.config";
+import { Radial } from "./radial";
 
 @Component({
     selector: "radial",
@@ -11,29 +11,44 @@ import * as config from "./radial.config";
 })
 export class RadialComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy | null = null;
-    private irises: IHierarchy | null = null;
-    private result: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>,
-                    d3.BaseType, {}> | null = null;
+    private radial: Radial | null = null;
 
     constructor(private data: DataService) {
     }
 
     public ngOnInit() {
-        this.data.currentPlotMessage.subscribe((msg) => this.result ? config.getMessage(this.result, msg) : null);
+        this.data.currentPlotMessage.subscribe((msg) => this.getMessage(msg));
     }
 
     public ngOnChanges(changes: SimpleChanges) {
         const data: SimpleChange = changes.Irises;
-        this.irises = data.currentValue;
-        this.draw();
+        this.draw(data.currentValue);
     }
 
-    public draw() {
-        const root = d3.hierarchy<IHierarchy>(this.irises as IHierarchy,
-            (d: IHierarchy) => d.children ? d.children : null)
-            .sum((d: IHierarchy) => 1);
-        const desc = d3.partition().size([2 * Math.PI, config.radius])(root).descendants();
-        const svg = config.configSvg(d3.select("svg"));
-        this.result = config.getData(svg, desc, (msg) => this.data.sendRadial(msg));
+    public getMessage(msg: IMessage) {
+        switch (msg.event) {
+            case Event.Start:
+                if (this.radial) {
+                    this.radial.setInvisible();
+                }
+                break;
+            case Event.Stop:
+                if (this.radial) {
+                    this.radial.setVisible();
+                }
+                break;
+            case Event.Continue:
+                if (msg.id && this.radial) {
+                    this.radial.setFilter(msg.id);
+                }
+                break;
+        }
+    }
+
+    public draw(irises: IHierarchy) {
+        const root = d3.hierarchy<IHierarchy>(irises, (d: IHierarchy) => d.children ? d.children : null)
+                    .sum((d: IHierarchy) => 1);
+
+        this.radial = new Radial(d3.select("svg"), root, (msg) => this.data.sendRadial(msg));
     }
 }

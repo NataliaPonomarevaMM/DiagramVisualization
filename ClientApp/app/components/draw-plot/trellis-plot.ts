@@ -1,9 +1,9 @@
 import * as d3 from "d3";
 import { Event, IMessage} from "../data.service";
 import { IIris } from "../iris";
+import { Tooltip } from "../tooltip";
 import { Axis, AxisType } from "./axis";
 import { Brush } from "./brush";
-import { Tooltip } from "./tooltip";
 
 const margin = {
     bottom: 15,

@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { IIris } from "../iris";
+import { IIris } from "./iris";
 
 export class Tooltip {
     private readonly tooltip: d3.Selection<d3.BaseType, {}, HTMLElement, any>;
