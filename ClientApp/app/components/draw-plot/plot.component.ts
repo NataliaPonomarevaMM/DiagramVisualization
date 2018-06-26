@@ -3,7 +3,7 @@ import { Component, Input, OnChanges, OnInit,
 import * as d3 from "d3";
 import { DataService, Event, IMessage } from "../data.service";
 import { IHierarchy,  IIris } from "../iris";
-import * as config from "./plot.config";
+import { TrellisPlot } from "./trellis-plot";
 
 @Component({
     selector: "plot",
@@ -14,17 +14,15 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     @Input() public Irises: IHierarchy |  null = null;
     @Input() public YMean: string = "";
     @Input() public XMean: string = "";
-    private plot: d3.Selection<d3.BaseType, IIris, d3.BaseType, {}> | null = null;
-    private brushSelection: d3.Selection<SVGGElement, {}, HTMLElement, any> | null = null;
-    private brush: d3.BrushBehavior<{}> | null = null;
     private id = 0;
+    private plot: TrellisPlot | null = null;
 
     constructor(private data: DataService) {
     }
 
     public ngOnInit() {
-        this.data.currentRadialMessage.subscribe((m) => this.getMessage(m));
-        this.data.currentBrushMessage.subscribe((m) => this.stopBrush(m));
+        this.data.currentRadialMessage.subscribe((m) => this.getRadialMessage(m));
+        this.data.currentBrushMessage.subscribe((m) => this.getBrushMessage(m));
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -36,30 +34,37 @@ export class DrawPlotComponent implements OnChanges, OnInit {
         }
     }
 
-    private getMessage(msg: IMessage) {
-        if (this.plot) {
-            this.plot.attr("r", (d) => msg.event === Event.Start && msg.id &&
-                d.id.lastIndexOf(msg.id, 0) === 0 ? 5 : 2);
+    private getRadialMessage(msg: IMessage) {
+        if (msg.event === Event.Start && msg.id && this.plot) {
+            this.plot.setCircleRadius(msg.id);
         }
     }
 
-    private stopBrush(message: IMessage) {
-        if (message.id && this.id !== +message.id && this.brush && this.brushSelection) {
-            this.brushSelection.call(this.brush.move, null);
+    private getBrushMessage(message: IMessage) {
+        if (message.id && this.id !== +message.id && this.plot) {
+            this.plot.stopBrush();
         }
     }
 
-    private draw(data: IHierarchy, xMean: string, yMean: string) {
-        this.id = config.getIndex(xMean) * 4 + config.getIndex(yMean);
-        const svg = config.getSvg(this.id);
-
+    private draw(data: IHierarchy, x: string, y: string) {
+        this.id = getIndex(x) * 4 + getIndex(y);
         const root = d3.hierarchy<IHierarchy>(data, (d: IHierarchy) => d.children ? d.children : null);
         const irises = root.leaves().map((el) => el.data.data).reduce((prev, cur) => prev.concat(cur));
-
-        const axis = config.configureAxis(svg, irises, xMean, yMean);
-        this.plot = config.setData(svg, irises, xMean, yMean, axis.xMap, axis.yMap);
-        this.brush = config.setBrush(this.plot, xMean, yMean, (m) => this.data.sendPlot(m),
-            this.id, axis.xMap, axis.yMap);
-        this.brushSelection = svg.append<SVGGElement>("g").call(this.brush);
+        this.plot = new TrellisPlot(this.id, x, y, irises, (m) => this.data.sendPlot(m));
     }
 }
+
+const getIndex = (str: string): number => {
+    switch (str) {
+    case "sepalLength":
+        return 0;
+    case "sepalWidth":
+        return 1;
+    case "petalLength":
+        return 2;
+    case "petalWidth":
+        return 3;
+    default:
+        return 0;
+    }
+};
