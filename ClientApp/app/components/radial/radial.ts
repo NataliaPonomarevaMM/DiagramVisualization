@@ -46,8 +46,11 @@ export class Radial {
         const tooltip = new Tooltip(svg.append("text"));
         this.radial
             .on("mouseover", (d: d3.HierarchyRectangularNode<{}>) => {
-                send({event: Event.Start, idElement: (d.data as IHierarchy).id});
-                tooltip.setVisible((d.data as IHierarchy).species);
+                const el = d3.select("#radial" + (d.data as IHierarchy).id);
+                if (el.style("fill") !== "none") {
+                    send({event: Event.Start, idElement: (d.data as IHierarchy).id});
+                    tooltip.setVisible((d.data as IHierarchy).species);
+                }
             })
             .on("mouseout", (d: d3.HierarchyRectangularNode<{}>) => {
                 send({event: Event.Stop});
