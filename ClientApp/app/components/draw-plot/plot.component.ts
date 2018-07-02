@@ -38,8 +38,8 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     private getRadialMessage(msg: IMessage) {
         switch (msg.event) {
             case Event.Start:
-                if (msg.id && this.plot) {
-                    this.plot.setCircleRadius(msg.id);
+                if (msg.idElement && this.plot) {
+                    this.plot.setCircleRadius(msg.idElement);
                 }
                 break;
             case Event.Stop:
@@ -48,15 +48,12 @@ export class DrawPlotComponent implements OnChanges, OnInit {
                 }
                 break;
         }
-        if (msg.event === Event.Start && msg.id && this.plot) {
-            this.plot.setCircleRadius(msg.id);
-        }
     }
 
     private getBrushMessage(msg: IMessage) {
         switch (msg.event) {
             case Event.Start:
-                if (msg.id && this.id !== +msg.id && this.plot) {
+                if (msg.idSource && this.id !== msg.idSource && this.plot) {
                     this.plot.stopBrush();
                 }
                 break;
@@ -71,8 +68,8 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     private getPlotMessage(msg: IMessage) {
         switch (msg.event) {
             case Event.Continue:
-                if (msg.id && this.plot) {
-                    this.plot.setCircleRadius(msg.id);
+                if (msg.idElement && this.plot) {
+                    this.plot.setCircleRadius(msg.idElement);
                 }
                 break;
         }

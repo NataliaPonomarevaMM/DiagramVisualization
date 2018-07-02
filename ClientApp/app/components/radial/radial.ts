@@ -7,7 +7,13 @@ const sizes = {
     vHeight: 500,
     vWidth: 500,
 };
-const radius = (Math.min(sizes.vWidth, sizes.vHeight) / 2) - 10;
+const margin = {
+    bottom: 20,
+    left: 20,
+    right: 20,
+    top: 20,
+};
+const radius = (Math.min(sizes.vWidth, sizes.vHeight) / 2);
 const arc = d3.arc<d3.HierarchyRectangularNode<{}>>()
             .startAngle((d) => d.x0)
             .endAngle((d) => d.x1)
@@ -21,10 +27,12 @@ export class Radial {
     constructor(svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                 data: d3.HierarchyNode<IHierarchy>,
                 send: (msg: IMessage) => void) {
-        const circle = svg.attr("width", sizes.vWidth)
-            .attr("height", sizes.vHeight)
+        const circle = svg
+            .attr("width", sizes.vWidth + margin.left + margin.right)
+            .attr("height", sizes.vHeight + margin.bottom + margin.top)
             .append("g")
-            .attr("transform", "translate(" + sizes.vWidth / 2 + "," + sizes.vHeight / 2 + ")");
+            .attr("transform", "translate(" + (sizes.vWidth / 2 + margin.left) +
+                    "," + (sizes.vHeight / 2 + margin.top) + ")");
 
         const desc = d3.partition().size([2 * Math.PI, radius])(data).descendants();
         this.radial = circle.selectAll("circle")
@@ -38,7 +46,7 @@ export class Radial {
         const tooltip = new Tooltip(svg.append("text"));
         this.radial
             .on("mouseover", (d: d3.HierarchyRectangularNode<{}>) => {
-                send({event: Event.Start, id: (d.data as IHierarchy).id});
+                send({event: Event.Start, idElement: (d.data as IHierarchy).id});
                 tooltip.setVisible((d.data as IHierarchy).species);
             })
             .on("mouseout", (d: d3.HierarchyRectangularNode<{}>) => {

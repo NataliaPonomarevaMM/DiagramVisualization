@@ -9,7 +9,8 @@ export enum Event {
 
 export interface IMessage {
     event: Event;
-    id?: string;
+    idSource?: number;
+    idElement?: string;
 }
 
 @Injectable()

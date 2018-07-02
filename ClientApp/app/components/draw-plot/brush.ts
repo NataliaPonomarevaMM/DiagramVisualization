@@ -10,7 +10,7 @@ export class Brush {
                 width: number, height: number,
                 irises: IIris[],
                 getPos: (iris: IIris) => { x: number, y: number },
-                send: (msg: IMessage) => void, id: string) {
+                send: (msg: IMessage) => void, id: number) {
         this.brush = d3.brush()
             .extent([[0, 0], [width, height]])
             .on("start", () => {
@@ -19,18 +19,18 @@ export class Brush {
                         d3.event.selection[0][1] === d3.event.selection[1][1]) {
                             send({event: Event.Stop});
                     } else {
-                            send({event: Event.Start, id});
+                            send({event: Event.Start, idSource: id});
                     }
                 }
             })
             .on("brush", () => {
                 if (d3.event.selection != null) {
-                    send({event: Event.Start, id});
+                    send({event: Event.Start, idSource: id});
                     irises.forEach((d) => {
                         const {x, y} = getPos(d);
                         if (x >= d3.event.selection[0][0] && x <= d3.event.selection[1][0] &&
                             y >= d3.event.selection[0][1] && y <= d3.event.selection[1][1]) {
-                                send({event: Event.Continue, id: d.id});
+                                send({event: Event.Continue, idElement: d.id});
                         }
                     });
                 }

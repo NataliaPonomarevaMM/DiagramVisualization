@@ -38,8 +38,8 @@ export class RadialComponent implements OnChanges, OnInit {
                 }
                 break;
             case Event.Continue:
-                if (msg.id && this.radial) {
-                    this.radial.setFilter(msg.id);
+                if (msg.idElement && this.radial) {
+                    this.radial.setFilter(msg.idElement);
                 }
                 break;
         }

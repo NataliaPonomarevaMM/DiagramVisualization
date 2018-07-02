@@ -43,7 +43,7 @@ export class TrellisPlot {
                 const x = this.xAxis.Map(d);
                 const y = this.yAxis.Map(d);
                 return {x, y};
-            }, send, id.toString());
+            }, send, id);
 
         this.plot = this.svg.selectAll("circle").data(irises).enter().append("circle")
             .attr("id", (d, i) => "dot" + i)
