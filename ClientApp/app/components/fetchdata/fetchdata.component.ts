@@ -18,7 +18,7 @@ export class FetchDataComponent {
     }
 
     public onClick() {
-        this.data.sendPlot({event: Event.Stop, id: ""});
-        this.data.sendBrush({event: Event.Stop, id: ""});
+        this.data.sendPlot({event: Event.Stop});
+        this.data.sendBrush({event: Event.Stop});
     }
 }

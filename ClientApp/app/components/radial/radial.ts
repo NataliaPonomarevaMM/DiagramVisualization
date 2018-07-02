@@ -13,7 +13,7 @@ const arc = d3.arc<d3.HierarchyRectangularNode<{}>>()
             .endAngle((d) => d.x1)
             .innerRadius((d) => d.y0)
             .outerRadius((d) => d.y1);
-const color = d3.scaleOrdinal(d3.schemeCategory10);
+const color = d3.scaleOrdinal(d3.schemePastel2);
 
 export class Radial {
     private radial: d3.Selection<d3.BaseType, d3.HierarchyRectangularNode<{}>, d3.BaseType, {}>;
@@ -21,8 +21,6 @@ export class Radial {
     constructor(svg: d3.Selection<d3.BaseType, {}, HTMLElement, any>,
                 data: d3.HierarchyNode<IHierarchy>,
                 send: (msg: IMessage) => void) {
-        console.log(sizes);
-        const tooltip = new Tooltip(svg.append("text"));
         const circle = svg.attr("width", sizes.vWidth)
             .attr("height", sizes.vHeight)
             .append("g")
@@ -36,13 +34,16 @@ export class Radial {
             .attr("d", arc)
             .style("stroke", "#fff")
             .style("fill", (d: d3.HierarchyRectangularNode<{}>) =>
-                color((d.data as IHierarchy).species + d.value + d.depth))
+                color((d.data as IHierarchy).species + d.value + d.depth));
+        const tooltip = new Tooltip(svg.append("text"));
+        this.radial
             .on("mouseover", (d: d3.HierarchyRectangularNode<{}>) => {
                 send({event: Event.Start, id: (d.data as IHierarchy).id});
-                tooltip.setVisible(0, 0, (d.data as IHierarchy).species);
+                tooltip.setVisible((d.data as IHierarchy).species);
             })
             .on("mouseout", (d: d3.HierarchyRectangularNode<{}>) => {
                 send({event: Event.Stop});
+                tooltip.setInvisible();
             });
     }
 

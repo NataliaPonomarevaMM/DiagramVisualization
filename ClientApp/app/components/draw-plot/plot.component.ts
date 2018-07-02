@@ -23,6 +23,7 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     public ngOnInit() {
         this.data.currentRadialMessage.subscribe((m) => this.getRadialMessage(m));
         this.data.currentBrushMessage.subscribe((m) => this.getBrushMessage(m));
+        // this.data.currentPlotMessage.subscribe((m) => this.getPlotMessage(m));
     }
 
     public ngOnChanges(changes: SimpleChanges) {
@@ -35,14 +36,45 @@ export class DrawPlotComponent implements OnChanges, OnInit {
     }
 
     private getRadialMessage(msg: IMessage) {
+        switch (msg.event) {
+            case Event.Start:
+                if (msg.id && this.plot) {
+                    this.plot.setCircleRadius(msg.id);
+                }
+                break;
+            case Event.Stop:
+                if (this.plot) {
+                    this.plot.clearRadius();
+                }
+                break;
+        }
         if (msg.event === Event.Start && msg.id && this.plot) {
             this.plot.setCircleRadius(msg.id);
         }
     }
 
-    private getBrushMessage(message: IMessage) {
-        if (message.id && this.id !== +message.id && this.plot) {
-            this.plot.stopBrush();
+    private getBrushMessage(msg: IMessage) {
+        switch (msg.event) {
+            case Event.Start:
+                if (msg.id && this.id !== +msg.id && this.plot) {
+                    this.plot.stopBrush();
+                }
+                break;
+            case Event.Stop:
+                if (this.plot) {
+                    this.plot.stopBrush();
+                }
+                break;
+        }
+    }
+
+    private getPlotMessage(msg: IMessage) {
+        switch (msg.event) {
+            case Event.Continue:
+                if (msg.id && this.plot) {
+                    this.plot.setCircleRadius(msg.id);
+                }
+                break;
         }
     }
 

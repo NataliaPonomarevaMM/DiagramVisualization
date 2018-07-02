@@ -38,7 +38,6 @@ export class TrellisPlot {
         this.xAxis = new Axis(0, this.width, AxisType.BOTTOM, xValue);
         this.yAxis = new Axis(this.height, 0, AxisType.LEFT, yValue);
         this.configureAxis(irises);
-
         this.brush = new Brush(this.svg, this.width, this.height, irises,
             (d: IIris) => {
                 const x = this.xAxis.Map(d);
@@ -46,19 +45,21 @@ export class TrellisPlot {
                 return {x, y};
             }, send, id.toString());
 
-        const tooltip = new Tooltip(this.svg.append("text"));
         this.plot = this.svg.selectAll("circle").data(irises).enter().append("circle")
             .attr("id", (d, i) => "dot" + i)
             .attr("r", 2)
             .attr("cx", (d) => this.xAxis.Map(d))
             .attr("cy", (d) => this.yAxis.Map(d))
-            .style("fill", (d: IIris) => color(cValue(d)))
+            .style("fill", (d: IIris) => color(cValue(d)));
+        const tooltip = new Tooltip(this.svg.append("text"));
+        this.plot
             .on("mouseover", (d: IIris) => {
-                tooltip.setVisible(this.xAxis.Value(d), this.yAxis.Value(d), d.species);
+                tooltip.setVisible(d.species, this.xAxis.Value(d), this.yAxis.Value(d));
             })
             .on("mouseout", (d: IIris) => {
                 tooltip.setInvisible();
             });
+
     }
 
     public stopBrush() {
@@ -70,6 +71,12 @@ export class TrellisPlot {
     public setCircleRadius(id: string) {
         if (this.plot) {
             this.plot.attr("r", (d) => d.id.lastIndexOf(id, 0) === 0 ? 5 : 2);
+        }
+    }
+
+    public clearRadius() {
+        if (this.plot) {
+            this.plot.attr("r", 2);
         }
     }
 

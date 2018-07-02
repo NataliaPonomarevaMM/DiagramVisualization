@@ -8,16 +8,24 @@ export class Tooltip {
         this.tooltip = tooltip;
     }
 
-    public setVisible(x: number, y: number, text: string) {
-        this.tooltip
+    public setVisible(text: string, x?: number, y?: number) {
+        if (x && y) {
+            this.tooltip
             .attr("x", +d3.event.layerX - 20)
             .attr("y", +d3.event.layerY)
             .style("fill-opacity", 1)
             .text(text);
-        this.tooltip.append("tspan")
-            .attr("x", +d3.event.layerX - 20)
-            .attr("dy", ".9em")
-            .text("(" + x + ";" + y + ")");
+            this.tooltip.append("tspan")
+                .attr("x", +d3.event.layerX - 20)
+                .attr("dy", ".9em")
+                .text("(" + x + ";" + y + ")");
+        } else {
+            this.tooltip
+            .attr("x", +d3.event.layerX - 100)
+            .attr("y", +d3.event.layerY)
+            .style("fill-opacity", 1)
+            .text(text);
+        }
     }
 
     public setInvisible() {
